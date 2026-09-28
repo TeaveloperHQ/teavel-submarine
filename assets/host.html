@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>부력 잠수함 — 교사 화면</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script>(function(){try{var t=localStorage.getItem('sub_theme');if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root { color-scheme: light;
+    --bg:#f0f7fb; --surface:#ffffff; --bd:#d6e4ee; --mut:#5b6b7a; --fg:#0f1f2e;
+    --acc:#0284c7; --acc-soft:#e0f2fe; --on-acc:#ffffff; --hover:#eef4f8; --ok:#16a34a; --bad:#dc2626; --gold:#d97706;
+    --brand: linear-gradient(135deg,#0ea5e9,#2563eb 55%,#1e3a8a);
+    --shadow: 0 1px 3px rgba(15,31,46,.08), 0 1px 2px rgba(15,31,46,.04); }
+  :root[data-theme="dark"] { color-scheme: dark;
+    --bg:#071a2e; --surface:#0f2a44; --bd:#1f3f5f; --mut:#93aec6; --fg:#e2eef8;
+    --acc:#38bdf8; --acc-soft:#0c2f4a; --on-acc:#062038; --hover:#16385a; --gold:#fbbf24;
+    --shadow: 0 1px 3px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3); }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Noto Sans KR", sans-serif; background: var(--bg); color: var(--fg); }
+  button, select, input { font: inherit; color: inherit; }
+  header { padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--bd);
+           display: flex; align-items: center; gap: 16px; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img { width: 34px; height: 34px; }
+  .brand b { font-size: 18px; font-weight: 900; background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tabs { display: flex; gap: 4px; background: var(--hover); padding: 4px; border-radius: 10px; }
+  .tabs button { border: none; background: none; padding: 7px 14px; border-radius: 7px; font-weight: 700; cursor: pointer; color: var(--mut); }
+  .tabs button.on { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+  .spring { margin-left: auto; }
+  .netbadge { font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--bd); color: var(--mut); background: var(--hover); }
+  .netbadge.wifi { color: var(--acc); background: var(--acc-soft); border-color: transparent; }
+  .netbadge.warn { color: var(--bad); }
+  .status { font-size: 13px; color: var(--mut); }
+  .themebtn { border: 1px solid var(--bd); background: var(--surface); border-radius: 8px; padding: 6px 9px; cursor: pointer; }
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border: none; border-radius: 10px; font-weight: 800;
+         font-size: 14px; cursor: pointer; background: var(--acc); color: var(--on-acc); box-shadow: var(--shadow); text-decoration: none; }
+  .btn.ghost { background: var(--surface); color: var(--fg); border: 1px solid var(--bd); }
+  .btn.go { background: var(--ok); color: #fff; font-size: 16px; padding: 11px 20px; }
+  .btn.stop { background: var(--bad); color: #fff; font-size: 16px; padding: 11px 20px; }
+  .btn.danger { background: none; color: var(--bad); box-shadow: none; padding: 6px 8px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .card { background: var(--surface); border: 1px solid var(--bd); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+  h2 { font-size: 16px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  h2 .n { color: var(--mut); font-weight: 600; }
+  .live { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 980px) { .live { grid-template-columns: 1fr; } }
+  .joincard { text-align: center; }
+  .joincard img { width: 260px; height: 260px; background: #fff; border-radius: 12px; padding: 8px; border: 1px solid var(--bd); cursor: zoom-in; }
+  .joincard .scan { font-size: 20px; font-weight: 900; margin: 10px 0 2px; }
+  .joincard .url { font-size: 15px; color: var(--acc); word-break: break-all; font-weight: 700; }
+  .joincard .alt { font-size: 12px; color: var(--mut); margin-top: 6px; }
+  .joincard .btn { margin-top: 12px; width: 100%; justify-content: center; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .stats div { background: var(--hover); border-radius: 10px; padding: 8px 4px; }
+  .stats b { display: block; font-size: 22px; }
+  .stats span { font-size: 12px; color: var(--mut); }
+  .col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .ctop { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .ctop .cn { font-size: 22px; font-weight: 900; }
+  .ctop .meta { color: var(--mut); font-size: 14px; }
+  .badge { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--hover); color: var(--mut); }
+  .badge.open { background: #dcfce7; color: #166534; } .badge.prac { background: #fef3c7; color: #92400e; }
+  :root[data-theme="dark"] .badge.open { background: #064e3b; color: #6ee7b7; }
+  :root[data-theme="dark"] .badge.prac { background: #422006; color: #fcd34d; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .row label { font-size: 13px; font-weight: 700; color: var(--mut); }
+  select, input.txt { border: 1px solid var(--bd); background: var(--surface); border-radius: 8px; padding: 7px 10px; }
+  .hint { font-size: 13px; color: var(--mut); line-height: 1.5; margin-top: 10px; }
+  #strip { width: 100%; height: 150px; display: block; border-radius: 10px; margin-top: 12px; background: #0b4a70; }
+  .runs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .run { border: 1px solid var(--bd); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
+  .run .top { display: flex; justify-content: space-between; font-weight: 800; gap: 6px; }
+  .run .top span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .run .bar { height: 6px; background: var(--hover); border-radius: 3px; margin: 6px 0 4px; overflow: hidden; }
+  .run .bar i { display: block; height: 100%; background: var(--ok); }
+  .run .sub { display: flex; justify-content: space-between; font-size: 12px; color: var(--mut); }
+  .run.prac .bar i { background: #f59e0b; }
+  .run.stale { opacity: .5; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 8px 8px; text-align: left; border-bottom: 1px solid var(--bd); white-space: nowrap; }
+  th { font-size: 12px; color: var(--mut); font-weight: 800; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.rk { font-weight: 900; width: 40px; }
+  tr.r1 td.rk { color: #d4a017; } tr.r2 td.rk { color: #94a3b8; } tr.r3 td.rk { color: #b87333; }
+  .fin { color: var(--ok); font-weight: 800; } .crash { color: var(--bad); font-weight: 700; }
+  .empty { color: var(--mut); padding: 20px; text-align: center; border: 1px dashed var(--bd); border-radius: 12px; }
+  .players { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--bd); border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+  .chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .chip.run i { background: var(--acc); } .chip.practice i { background: #f59e0b; } .chip.off { opacity: .4; }
+  .modal { position: fixed; inset: 0; z-index: 40; background: rgba(3,15,30,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .sheet { width: 100%; max-width: 460px; background: var(--surface); border-radius: 18px; padding: 22px; }
+  .sheet h3 { margin: 0 0 6px; font-size: 20px; }
+  .sheet .lbl { font-size: 13px; font-weight: 800; color: var(--mut); margin: 14px 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { border: 1px solid var(--bd); background: var(--surface); border-radius: 999px; padding: 7px 14px; font-weight: 700; cursor: pointer; }
+  .chips button.on { background: var(--acc); border-color: var(--acc); color: var(--on-acc); }
+  .sheet .foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .sheet input.txt { width: 100%; font-size: 16px; }
+  /* 크게 보기(프로젝터) */
+  .big { position: fixed; inset: 0; z-index: 50; background: linear-gradient(160deg,#0b3b66,#041627); color: #fff; padding: 4vh 5vw; overflow: auto; }
+  .big .bt { display: flex; align-items: baseline; gap: 20px; margin-bottom: 3vh; }
+  .big .bt b { font-size: clamp(24px, 4.5vh, 56px); font-weight: 900; }
+  .big .bt span { font-size: clamp(14px, 2.2vh, 26px); color: #93c5fd; }
+  .big .bt button { margin-left: auto; }
+  .big .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4vh 3vw; }
+  .big .it { display: flex; align-items: center; gap: 2vw; background: rgba(255,255,255,.08); border-radius: 14px; padding: 1.3vh 1.6vw;
+             font-size: clamp(16px, 3vh, 38px); font-weight: 800; }
+  .big .it .rk { width: 2.2em; text-align: center; font-weight: 900; color: #93c5fd; }
+  .big .it.r1 .rk { color: #fcd34d; } .big .it.r2 .rk { color: #e2e8f0; } .big .it.r3 .rk { color: #fdba74; }
+  .big .it .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .big .it .sc { font-variant-numeric: tabular-nums; }
+  .big canvas { width: 100%; height: 22vh; border-radius: 14px; margin-bottom: 3vh; display: block; }
+  .qrfull { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; gap: 5vmin; flex-wrap: wrap;
+            background: rgba(3,15,30,.94); cursor: zoom-out; padding: 3vmin; }
+  .qrpanel { background: #fff; border-radius: 24px; padding: 4vmin; display: flex; flex-direction: column; align-items: center; gap: 2.4vh; }
+  .qrpanel img { width: min(76vh, 56vw); height: auto; image-rendering: pixelated; }
+  .qrpanel .qrurl { font-size: clamp(18px, 3.2vh, 40px); font-weight: 800; color: #0f172a; font-family: ui-monospace, monospace; }
+  .qrplayers { color: #fff; min-width: 240px; max-width: 34vw; }
+  .qrplayers .cnt { font-size: clamp(22px, 3.6vh, 44px); font-weight: 800; margin-bottom: 2vh; }
+  .qrplayers .cnt b { color: #38bdf8; }
+  .qrplayers .names { display: flex; flex-wrap: wrap; gap: 1vh; }
+  .qrplayers .names span { background: rgba(255,255,255,.12); border-radius: 10px; padding: 8px 12px; font-weight: 700; font-size: clamp(14px, 2vh, 22px); }
+  .hidden { display: none !important; }
+  .reclist { display: flex; flex-direction: column; gap: 8px; }
+  .rec { display: flex; align-items: center; gap: 12px; border: 1px solid var(--bd); border-radius: 12px; padding: 10px 14px; cursor: pointer; }
+  .rec:hover { background: var(--hover); } .rec.on { outline: 2px solid var(--acc); }
+  .rec .nm { font-weight: 800; flex: 1; }
+  .rec .meta { font-size: 13px; color: var(--mut); }
+  .recs { display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 980px) { .recs { grid-template-columns: 1fr; } }
+  .scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><img src="/icon.svg" alt=""><b>부력 잠수함</b></div>
+  <div class="tabs"><button data-tab="live" class="on">진행</button><button data-tab="recs">기록</button></div>
+  <span class="netbadge" id="net">연결 확인 중</span>
+  <span class="status spring" id="wsState">연결 중…</span>
+  <button class="themebtn" id="themeBtn" title="화면 밝기">◐</button>
+</header>
+
+<main>
+<section id="tab-live">
+  <div class="live">
+    <div class="card joincard">
+      <img id="qr" src="/qr.png" alt="접속 QR" title="크게 보기">
+      <div class="scan">QR 을 찍어 입장</div>
+      <div class="url" id="url"></div>
+      <div class="alt" id="alt"></div>
+      <button class="btn ghost" id="qrBig">QR 크게 띄우기</button>
+      <div class="stats"><div><b id="sOnline">0</b><span>접속</span></div><div><b id="sRun">0</b><span>주행 중</span></div><div><b id="sDone">0</b><span>기록한 학생</span></div></div>
+    </div>
+    <div class="col">
+      <div class="card" id="courseCard"></div>
+      <div class="card"><h2>지금 주행 중 <span class="n" id="runN"></span></h2><div class="runs" id="runs"></div></div>
+      <div class="card">
+        <h2>순위 <span class="n" id="boardN"></span><span class="spring"></span><button class="btn ghost" id="bigBtn">크게 보기</button></h2>
+        <div class="scroll" id="board"></div>
+      </div>
+      <div class="card"><h2>접속한 학생 <span class="n" id="plN"></span></h2><div class="players" id="players"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-recs" class="hidden">
+  <div class="row" style="margin-top:0;margin-bottom:16px">
+    <label>날짜</label><select id="dateSel"><option value="">전체</option></select>
+    <span class="spring"></span>
+    <a class="btn ghost" id="csvBestAll">최고 기록 CSV(선택 날짜 전체)</a>
+    <a class="btn ghost" id="csvAllAll">모든 주행 CSV(선택 날짜 전체)</a>
+  </div>
+  <div class="recs">
+    <div class="reclist" id="recList"></div>
+    <div class="card" id="recView"><div class="empty">왼쪽에서 코스를 고르세요.</div></div>
+  </div>
+</section>
+</main>
+
+<div class="modal hidden" id="newModal"><div class="sheet">
+  <h3>새 코스 만들기</h3>
+  <div class="hint" style="margin-top:0">새 코스를 만들면 지금 코스는 <b>기록 탭</b>에 그대로 남고, 학생 화면은 새 코스로 바뀝니다.
+    새 코스는 <b>연습만 가능</b> 상태로 열리니, 준비되면 <b>기록 시작</b>을 누르세요.</div>
+  <div class="lbl">코스 이름</div><input class="txt" id="ncName" maxlength="30" placeholder="예: 3반 부력 챌린지">
+  <div class="lbl">길이 (전진 속도 10 m/s)</div><div class="chips" id="ncLen"></div>
+  <div class="lbl">난이도</div><div class="chips" id="ncDiff"></div>
+  <div class="lbl">공식 도전 횟수</div><div class="chips" id="ncLimit"></div>
+  <div class="foot"><button class="btn ghost" id="ncCancel">취소</button><button class="btn" id="ncOK">만들기</button></div>
+</div></div>
+
+<div class="big hidden" id="big">
+  <div class="bt"><b id="bigTitle"></b><span id="bigMeta"></span><button class="btn ghost" id="bigClose">닫기 (ESC)</button></div>
+  <canvas id="bigStrip"></canvas>
+  <div class="grid" id="bigGrid"></div>
+</div>
+
+<div class="qrfull hidden" id="qrFull" title="닫기">
+  <div class="qrpanel"><img id="qrFullImg" alt="QR"><div class="qrurl" id="qrFullUrl"></div></div>
+  <div class="qrplayers"><div class="cnt">접속 <b id="qrCount">0</b>명</div><div class="names" id="qrNames"></div></div>
+</div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const dur = sec => (sec >= 60 ? Math.floor(sec / 60) + '분 ' : '') + (sec % 60 ? sec % 60 + '초' : '');
+const DIFF = { easy: '쉬움', normal: '보통', hard: '어려움' };
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+$('#themeBtn').onclick = () => {
+  const d = document.documentElement, n = d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  d.setAttribute('data-theme', n); store.set('sub_theme', n);
+};
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('#tab-live').classList.toggle('hidden', b.dataset.tab !== 'live');
+  $('#tab-recs').classList.toggle('hidden', b.dataset.tab !== 'recs');
+  if (b.dataset.tab === 'recs') loadRecs();
+});
+
+// ── 접속 정보 · QR ──────────────────────────────────────────
+let info = null;
+fetch('/info').then(r => r.json()).then(i => {
+  info = i;
+  $('#url').textContent = i.joinURL; $('#qrFullUrl').textContent = i.joinURL;
+  if (i.candidates && i.candidates.length > 1) $('#alt').textContent = '안 되면: ' + i.candidates.filter(c => c !== i.primaryIP).map(c => `http://${c}:${i.port}/`).join(' · ');
+  const n = { wireless: ['wifi', '무선 (Wi-Fi)'], wired: ['warn', '유선 (랜선) — 학생 와이파이와 같은 망인지 확인'] }[i.media] || ['', '연결 방식 불명'];
+  $('#net').className = 'netbadge ' + n[0]; $('#net').textContent = n[1];
+});
+const openQr = () => { $('#qrFullImg').src = '/qr.png?size=1024'; $('#qrFull').classList.remove('hidden'); fillQr(); };
+$('#qr').onclick = openQr; $('#qrBig').onclick = openQr;
+$('#qrFull').onclick = () => $('#qrFull').classList.add('hidden');
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('#qrFull').classList.add('hidden'); $('#big').classList.add('hidden'); $('#newModal').classList.add('hidden'); } });
+function fillQr() {
+  if (!st) return;
+  const on = st.players.filter(p => p.online);
+  $('#qrCount').textContent = on.length;
+  $('#qrNames').innerHTML = on.map(p => `<span>${esc(p.name)}</span>`).join('');
+}
+
+// ── WebSocket ───────────────────────────────────────────────
+let ws, st = null, hc = null; // st = 마지막 host 상태, hc = 코스(장애물 포함)
+function connect() {
+  ws = new WebSocket(`ws://${location.host}/ws?role=host`);
+  ws.onopen = () => { $('#wsState').textContent = '서버 연결됨'; };
+  ws.onclose = () => { $('#wsState').textContent = '서버 연결 끊김 — 프로그램이 켜져 있는지 확인하세요'; setTimeout(connect, 1500); };
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.t === 'hcourse') { hc = m.course; stripCache = null; renderCourse(); }
+    else if (m.t === 'host') { st = m; renderLive(); }
+  };
+}
+const send = o => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
+connect();
+
+// ── 코스 카드 ───────────────────────────────────────────────
+function renderCourse() {
+  const cc = $('#courseCard');
+  const c = st && st.course;
+  if (!c) {
+    cc.innerHTML = `<h2>코스</h2><div class="empty">아직 코스가 없어요.<br><br><button class="btn" id="newBtn">새 코스 만들기</button></div>`;
+    $('#newBtn').onclick = openNew; return;
+  }
+  const lims = [0, 1, 2, 3, 5, 10];
+  cc.innerHTML = `
+    <div class="ctop"><span class="cn">${esc(c.name)}</span>
+      <span class="meta">${c.length} m · ${DIFF[c.diff]} · 한 번에 약 ${dur(c.length / 10)}</span>
+      ${c.open ? '<span class="badge open">기록 중</span>' : '<span class="badge prac">연습만 가능</span>'}
+      <span class="spring"></span>
+      ${c.open ? '<button class="btn stop" id="openBtn">기록 마감</button>' : '<button class="btn go" id="openBtn">기록 시작</button>'}</div>
+    <div class="row"><label>공식 도전 횟수</label>
+      <select id="limSel">${lims.map(l => `<option value="${l}" ${l === c.limit ? 'selected' : ''}>${l ? l + '회' : '무제한'}</option>`).join('')}</select>
+      <span class="spring"></span><button class="btn ghost" id="newBtn">새 코스 만들기</button></div>
+    <canvas id="strip"></canvas>
+    <div class="hint">${c.open ? '학생들이 공식 도전 중입니다. 학생마다 <b>가장 높은 점수</b>가 순위에 올라갑니다. 마감하면 새 도전은 막히고, 달리던 주행은 끝까지 기록됩니다.'
+      : '지금은 <b>연습 주행</b>만 됩니다(기록 안 됨). 학생들이 조작에 익숙해지면 <b>기록 시작</b>을 누르세요.'}
+      지도의 점은 달리는 학생(초록 = 공식, 주황 = 연습)입니다.</div>`;
+  $('#openBtn').onclick = () => {
+    if (c.open && !confirm('기록을 마감할까요? 더 이상 공식 도전을 시작할 수 없어요.')) return;
+    send({ t: 'setOpen', open: !c.open });
+  };
+  $('#limSel').onchange = e => send({ t: 'setLimit', limit: +e.target.value });
+  $('#newBtn').onclick = openNew;
+  courseKey = c.id + c.open + c.limit + c.name;
+}
+let courseKey = '';
+
+// ── 새 코스 ─────────────────────────────────────────────────
+const nc = { length: 1200, diff: 'normal', limit: 3 };
+function chips(el, opts, key) {
+  el.innerHTML = opts.map(([v, t]) => `<button data-v="${v}" class="${nc[key] == v ? 'on' : ''}">${t}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { nc[key] = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; chips(el, opts, key); });
+}
+function openNew() {
+  $('#ncName').value = '';
+  chips($('#ncLen'), [[600, '600 m · 1분'], [900, '900 m · 1분 30초'], [1200, '1200 m · 2분'], [1800, '1800 m · 3분']], 'length');
+  chips($('#ncDiff'), [['easy', '쉬움'], ['normal', '보통'], ['hard', '어려움']], 'diff');
+  chips($('#ncLimit'), [[0, '무제한'], [1, '1회'], [3, '3회'], [5, '5회']], 'limit');
+  $('#newModal').classList.remove('hidden'); $('#ncName').focus();
+}
+$('#ncCancel').onclick = () => $('#newModal').classList.add('hidden');
+$('#ncOK').onclick = () => {
+  if (st && st.course && st.course.open && !confirm('지금 코스가 기록 중이에요. 새 코스로 바꿀까요? (지금까지 기록은 기록 탭에 남아요)')) return;
+  send({ t: 'newCourse', name: $('#ncName').value.trim(), length: nc.length, diff: nc.diff, limit: nc.limit });
+  $('#newModal').classList.add('hidden');
+};
+
+// ── 진행 상황 ───────────────────────────────────────────────
+function renderLive() {
+  const c = st.course;
+  const key = c ? c.id + c.open + c.limit + c.name : '';
+  if (key !== courseKey || !$('#courseCard').innerHTML) renderCourse();
+  $('#sOnline').textContent = st.online;
+  $('#sRun').textContent = st.runs.length;
+  $('#sDone').textContent = st.board.length;
+  // 주행 중
+  $('#runN').textContent = st.runs.length ? `${st.runs.length}명` : '';
+  $('#runs').innerHTML = st.runs.length ? st.runs.map(r => `
+    <div class="run ${r.practice ? 'prac' : ''} ${r.stale ? 'stale' : ''}">
+      <div class="top"><span>${esc(r.name)}</span><span>${r.sc}점</span></div>
+      <div class="bar"><i style="width:${c ? Math.min(100, r.x / c.length * 100) : 0}%"></i></div>
+      <div class="sub"><span>${Math.floor(r.x)} m${r.practice ? ' · 연습' : ''}</span><span>선체 ${'■'.repeat(Math.max(0, r.hp))}${'□'.repeat(Math.max(0, 3 - r.hp))}</span></div>
+    </div>`).join('') : '<div class="empty">지금 달리는 학생이 없어요.</div>';
+  // 순위
+  $('#boardN').textContent = st.board.length ? `${st.board.length}명 · 주행 ${st.totalRuns || 0}회` : '';
+  $('#board').innerHTML = boardTable(st.board);
+  // 학생
+  $('#plN').textContent = `${st.online}명 접속`;
+  $('#players').innerHTML = st.players.length ? st.players.map(p => `<span class="chip ${p.state} ${p.online ? '' : 'off'}" title="${p.state === 'run' ? '공식 주행 중' : p.state === 'practice' ? '연습 중' : '대기'}"><i></i>${esc((p.sid ? p.sid + ' ' : '') + p.name)}${p.tries ? ` · ${p.tries}회` : ''}</span>`).join('') : '<div class="empty" style="width:100%">아직 아무도 들어오지 않았어요. QR 을 띄워 주세요.</div>';
+  if (!$('#qrFull').classList.contains('hidden')) fillQr();
+  drawStrip($('#strip'));
+  if (!$('#big').classList.contains('hidden')) renderBig();
+}
+
+function boardTable(rows) {
+  if (!rows.length) return '<div class="empty">아직 공식 기록이 없어요.</div>';
+  return `<table><thead><tr><th>순위</th><th>학번</th><th>이름</th><th class="num">최고 점수</th><th class="num">거리</th><th class="num">진주</th><th>결과</th><th class="num">선체</th><th class="num">도전</th></tr></thead><tbody>
+    ${rows.map(r => `<tr class="r${r.rank}"><td class="rk">${r.rank}</td><td>${esc(r.sid)}</td><td><b>${esc(r.name)}</b></td><td class="num"><b>${r.score}</b></td>
+      <td class="num">${r.dist} m</td><td class="num">${r.pearls}</td><td class="${r.fin ? 'fin' : 'crash'}">${r.fin ? '완주' : '침몰'}</td>
+      <td class="num">${r.fin ? r.hp : '-'}</td><td class="num">${r.tries}</td></tr>`).join('')}</tbody></table>`;
+}
+
+// 코스 지도: 장애물 윤곽 + 달리는 학생 점
+let stripCache = null;
+function drawStrip(cv) {
+  if (!cv || !hc) return;
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const sx = x => x / hc.length * w, sy = y => (y + 4) / 66 * h;
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#bfe9ff'); gr.addColorStop(sy(0) / h, '#bfe9ff'); gr.addColorStop(sy(0) / h + .001, '#1f8fc4'); gr.addColorStop(1, '#062a4a');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#b79a62'; g.fillRect(0, sy(60), w, h);
+  for (const o of hc.obs) {
+    if (o.k === 'mine') { g.fillStyle = '#111827'; g.beginPath(); g.arc(sx(o.cx), sy(o.cy), Math.max(2, o.r / 66 * h), 0, 7); g.fill(); continue; }
+    g.fillStyle = o.k === 'ice' ? '#e0f7ff' : '#6b5543';
+    g.fillRect(sx(o.x1), sy(o.y1), Math.max(1.5, sx(o.x2) - sx(o.x1)), sy(o.y2) - sy(o.y1));
+  }
+  g.fillStyle = '#fde68a';
+  for (const p of hc.pearls) g.fillRect(sx(p.x) - 1, sy(p.y) - 1, 2, 2);
+  g.fillStyle = '#ef4444'; g.fillRect(w - 3, 0, 3, h);
+  if (!st) return;
+  g.font = `700 ${Math.max(10, h / 14)}px system-ui`; g.textAlign = 'center';
+  for (const r of st.runs) {
+    const x = sx(r.x), y = sy(r.y);
+    g.fillStyle = r.practice ? '#f59e0b' : '#22c55e'; g.strokeStyle = '#fff'; g.lineWidth = 1.5;
+    g.beginPath(); g.arc(x, y, Math.max(4, h / 30), 0, 7); g.fill(); g.stroke();
+    g.fillStyle = '#fff'; g.fillText(r.name, x, y - h / 22);
+  }
+}
+
+// ── 크게 보기 ───────────────────────────────────────────────
+$('#bigBtn').onclick = () => { $('#big').classList.remove('hidden'); renderBig(); };
+$('#bigClose').onclick = () => $('#big').classList.add('hidden');
+function renderBig() {
+  if (!st) return;
+  const c = st.course;
+  $('#bigTitle').textContent = c ? c.name : '순위';
+  $('#bigMeta').textContent = c ? `${c.length} m · ${DIFF[c.diff]} · ${c.open ? '기록 중' : '연습/마감'} · ${st.board.length}명 기록` : '';
+  const top = st.board.slice(0, 20);
+  $('#bigGrid').innerHTML = top.length ? top.map(r => `<div class="it r${r.rank}"><span class="rk">${r.rank}</span><span class="nm">${esc(r.name)}</span>
+    <span class="sc">${r.score}</span></div>`).join('') : '<div style="font-size:3vh;color:#93c5fd">아직 기록이 없어요</div>';
+  drawStrip($('#bigStrip'));
+}
+
+// ── 기록 탭 ─────────────────────────────────────────────────
+let recSel = null;
+async function loadRecs() {
+  const date = $('#dateSel').value;
+  const r = await (await fetch('/api/courses' + (date ? '?date=' + date : ''))).json();
+  const cur = $('#dateSel').value;
+  $('#dateSel').innerHTML = '<option value="">전체</option>' + r.dates.map(d => `<option ${d === cur ? 'selected' : ''}>${d}</option>`).join('');
+  const q = cur ? '&date=' + cur : '';
+  $('#csvBestAll').href = '/api/results.csv?kind=best' + q;
+  $('#csvAllAll').href = '/api/results.csv?kind=all' + q;
+  $('#recList').innerHTML = r.courses.length ? r.courses.map(c => `
+    <div class="rec ${recSel === c.date + '/' + c.file ? 'on' : ''}" data-k="${c.date}/${c.file}">
+      <div style="flex:1;min-width:0"><div class="nm">${esc(c.name)} ${r.current === c.date + '/' + c.file ? '<span class="badge open">진행 중</span>' : ''}</div>
+      <div class="meta">${c.date} ${c.createdAt.slice(11, 16)} · ${c.length} m · ${DIFF[c.diff]} · ${c.players}명 · 주행 ${c.runs}회${c.players ? ` · 1위 ${esc(c.topName)} ${c.top}점` : ''}</div></div>
+    </div>`).join('') : '<div class="empty">저장된 코스가 없어요.</div>';
+  document.querySelectorAll('.rec').forEach(el => el.onclick = () => { recSel = el.dataset.k; loadRecs(); showRec(recSel, r.current); });
+}
+$('#dateSel').onchange = loadRecs;
+async function showRec(k, current) {
+  const [date, file] = k.split('/');
+  const r = await fetch(`/api/courses/${date}/${file}`);
+  if (!r.ok) { $('#recView').innerHTML = '<div class="empty">불러오지 못했어요.</div>'; return; }
+  const d = await r.json();
+  const q = `date=${date}&file=${file}`;
+  $('#recView').innerHTML = `<h2>${esc(d.course.name)} <span class="n">${date} · ${d.course.length} m · ${DIFF[d.course.diff]}</span></h2>
+    <div class="row" style="margin:0 0 12px"><a class="btn ghost" href="/api/results.csv?kind=best&${q}">최고 기록 CSV</a>
+      <a class="btn ghost" href="/api/results.csv?kind=all&${q}">모든 주행 CSV</a><span class="spring"></span>
+      ${current === k ? '' : '<button class="btn danger" id="delBtn">이 코스 기록 삭제</button>'}</div>
+    <div class="scroll">${boardTable(d.board)}</div>`;
+  const db = $('#delBtn');
+  if (db) db.onclick = async () => {
+    if (!confirm(`'${d.course.name}' 기록을 지울까요? 되돌릴 수 없어요.`)) return;
+    const res = await fetch(`/api/courses/${date}/${file}`, { method: 'DELETE' });
+    if (!res.ok) { alert((await res.json()).error); return; }
+    recSel = null; $('#recView').innerHTML = '<div class="empty">지웠어요.</div>'; loadRecs();
+  };
+}
+window.addEventListener('resize', () => { drawStrip($('#strip')); });
+</script>
+</body>
+</html>

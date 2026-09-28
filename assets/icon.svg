@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient>
+    <clipPath id="hull"><path d="M18 70 L30 54 H88 A16 16 0 0 1 88 86 H30 Z"/></clipPath>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#sea)"/>
+  <path d="M0 40 Q16 34 32 40 T64 40 T96 40 T128 40" fill="none" stroke="#e0f2fe" stroke-width="3" opacity=".7"/>
+  <rect x="52" y="40" width="20" height="16" rx="4" fill="#fbbf24"/>
+  <path d="M18 70 L30 54 H88 A16 16 0 0 1 88 86 H30 Z" fill="#fbbf24"/>
+  <g clip-path="url(#hull)">
+    <rect x="18" y="54" width="18" height="32" fill="#fde68a"/>
+    <rect x="18" y="72" width="18" height="14" fill="#0ea5e9"/>
+    <rect x="86" y="54" width="20" height="32" fill="#fde68a"/>
+    <rect x="86" y="72" width="20" height="14" fill="#0ea5e9"/>
+  </g>
+  <path d="M18 70 L30 54 H88 A16 16 0 0 1 88 86 H30 Z" fill="none" stroke="#78350f" stroke-width="3"/>
+  <line x1="36" y1="54" x2="36" y2="86" stroke="#78350f" stroke-width="2.5"/>
+  <line x1="86" y1="54" x2="86" y2="86" stroke="#78350f" stroke-width="2.5"/>
+  <circle cx="52" cy="70" r="4" fill="#78350f"/><circle cx="68" cy="70" r="4" fill="#78350f"/>
+  <circle cx="96" cy="46" r="4" fill="#e0f2fe" opacity=".9"/><circle cx="102" cy="34" r="3" fill="#e0f2fe" opacity=".7"/><circle cx="96" cy="24" r="2" fill="#e0f2fe" opacity=".5"/>
+</svg>

@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b2545">
+<title>부력 잠수함</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script>(function(){try{var t=localStorage.getItem('sub_theme');if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root { color-scheme: light;
+    --bg:#f0f7fb; --surface:#ffffff; --bd:#d6e4ee; --mut:#5b6b7a; --fg:#0f1f2e;
+    --acc:#0284c7; --acc-soft:#e0f2fe; --hover:#eef4f8; --ok:#16a34a; --bad:#dc2626; --gold:#d97706;
+    --brand: linear-gradient(135deg,#0ea5e9,#2563eb 55%,#1e3a8a);
+    --shadow: 0 1px 3px rgba(15,31,46,.08), 0 1px 2px rgba(15,31,46,.04); }
+  :root[data-theme="dark"] { color-scheme: dark;
+    --bg:#071a2e; --surface:#0f2a44; --bd:#1f3f5f; --mut:#93aec6; --fg:#e2eef8;
+    --acc:#38bdf8; --acc-soft:#0c2f4a; --hover:#16385a; --gold:#fbbf24;
+    --shadow: 0 1px 3px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: system-ui, "Noto Sans KR", sans-serif; background: var(--bg); color: var(--fg); word-break: keep-all; }
+  button { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+  .ico { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* 입장 */
+  #join { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 12px; padding: 24px 16px; text-align: center; }
+  .logo { width: 108px; height: 108px; filter: drop-shadow(0 6px 14px rgba(2,132,199,.3)); }
+  h1 { margin: 4px 0 0; font-size: 32px; font-weight: 900;
+       background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--mut); font-size: 14px; margin: 0 0 8px; line-height: 1.5; }
+  .field { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 4px; text-align: left; }
+  .field label { font-size: 13px; font-weight: 700; color: var(--mut); }
+  input.txt { width: 100%; font-size: 20px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--bd);
+              background: var(--surface); color: var(--fg); }
+  input.txt:focus { outline: 2px solid var(--acc); outline-offset: 1px; }
+  .go { width: 100%; max-width: 340px; font-size: 20px; font-weight: 800; padding: 14px; border: none;
+        border-radius: 12px; background: var(--brand); color: #fff; cursor: pointer; margin-top: 6px; }
+  .go:disabled { opacity: .5; }
+  .err { color: var(--bad); min-height: 20px; font-size: 14px; }
+
+  /* 로비 */
+  #lobby { max-width: 640px; margin: 0 auto; padding: 0 16px 32px; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 12px 0; background: var(--bg); }
+  .bar img { width: 30px; height: 30px; }
+  .bar .me { font-weight: 800; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .spring { margin-left: auto; }
+  .conn { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+  .conn.off { background: var(--bad); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  .iconbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--bd);
+             background: var(--surface); border-radius: 10px; padding: 8px; cursor: pointer; font-size: 14px; font-weight: 700; }
+  .card { background: var(--surface); border: 1px solid var(--bd); border-radius: 16px; padding: 16px;
+          box-shadow: var(--shadow); margin-bottom: 14px; }
+  .coursecard .cn { font-size: 22px; font-weight: 900; }
+  .coursecard .meta { color: var(--mut); font-size: 14px; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .badge { font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: var(--hover); color: var(--mut); white-space: nowrap; }
+  .badge.open { background: #dcfce7; color: #166534; }
+  .badge.prac { background: #fef3c7; color: #92400e; }
+  :root[data-theme="dark"] .badge.open { background: #064e3b; color: #6ee7b7; }
+  :root[data-theme="dark"] .badge.prac { background: #422006; color: #fcd34d; }
+  .mine { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+  .mine div { background: var(--hover); border-radius: 12px; padding: 10px 6px; text-align: center; }
+  .mine b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .mine span { font-size: 12px; color: var(--mut); }
+  .btn { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 14px;
+         padding: 16px 12px; font-size: 20px; font-weight: 900; cursor: pointer; background: var(--brand); color: #fff; }
+  .btn.ghost { background: var(--surface); color: var(--fg); border: 1px solid var(--bd); font-size: 17px; padding: 13px; }
+  .btn.prac { background: linear-gradient(135deg,#f59e0b,#d97706); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .note { font-size: 13px; color: var(--mut); margin-top: 8px; text-align: center; line-height: 1.5; }
+  h2 { font-size: 15px; margin: 0 0 10px; color: var(--mut); display: flex; align-items: center; gap: 6px; }
+  .board { display: flex; flex-direction: column; gap: 6px; }
+  .brow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--hover); }
+  .brow .rk { width: 28px; text-align: center; font-weight: 900; color: var(--mut); }
+  .brow.r1 .rk { color: #d4a017; } .brow.r2 .rk { color: #94a3b8; } .brow.r3 .rk { color: #b87333; }
+  .brow .nm { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .brow .sc { font-weight: 900; font-variant-numeric: tabular-nums; }
+  .brow.me { outline: 2px solid var(--acc); background: var(--acc-soft); }
+  .brow .fin { font-size: 11px; font-weight: 800; color: var(--ok); }
+  .gap { text-align: center; color: var(--mut); font-size: 12px; }
+  .empty { color: var(--mut); font-size: 14px; padding: 6px 2px; }
+  .howto { font-size: 14px; line-height: 1.65; color: var(--mut); }
+  .howto b { color: var(--fg); }
+  .howto .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+  .howto .two div { border-radius: 12px; padding: 10px; background: var(--hover); }
+  .howto .two svg { width: 100%; height: 88px; display: block; }
+
+  /* 토스트 */
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 80; max-width: 92vw;
+           background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 15px; font-weight: 600;
+           box-shadow: 0 4px 16px rgba(0,0,0,.25); opacity: 0; transition: opacity .2s; pointer-events: none; text-align: center; }
+  #toast.show { opacity: 1; }
+
+  /* 게임 */
+  #game { position: fixed; inset: 0; background: #062a4a; overflow: hidden; touch-action: none;
+          user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  #cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+  #quit { position: absolute; top: calc(8px + env(safe-area-inset-top)); right: 8px; z-index: 3; border: none;
+          background: rgba(0,0,0,.35); color: #fff; border-radius: 10px; padding: 7px 11px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  #resultBox { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center;
+               background: rgba(3,15,30,.55); padding: 16px; }
+  .rcard { width: 100%; max-width: 380px; background: var(--surface); color: var(--fg); border-radius: 20px; padding: 20px;
+           box-shadow: 0 10px 40px rgba(0,0,0,.4); animation: pop .3s ease-out; max-height: 100%; overflow: auto; }
+  @keyframes pop { from { transform: scale(.9); opacity: 0; } }
+  .rcard .rt { font-size: 28px; font-weight: 900; text-align: center; }
+  .rcard .rt.fin { color: var(--ok); } .rcard .rt.crash { color: var(--bad); }
+  .rcard .rsub { text-align: center; color: var(--mut); font-size: 14px; margin: 2px 0 12px; }
+  .rline { display: flex; justify-content: space-between; padding: 5px 2px; font-size: 15px; border-bottom: 1px dashed var(--bd); }
+  .rline b { font-variant-numeric: tabular-nums; }
+  .rtotal { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 2px 4px; font-size: 18px; font-weight: 900; }
+  .rtotal b { font-size: 32px; color: var(--acc); font-variant-numeric: tabular-nums; }
+  .rrank { text-align: center; font-weight: 800; margin: 6px 0 14px; min-height: 22px; }
+  .rrank.best { color: var(--gold); }
+  .rbtns { display: flex; flex-direction: column; gap: 8px; }
+  @media (max-height: 480px) { .rcard { padding: 12px 16px; } .rcard .rt { font-size: 22px; } .rcard .rsub { margin-bottom: 4px; }
+    .rline { padding: 2px; font-size: 14px; } .rtotal { padding: 4px 2px 0; } .rtotal b { font-size: 26px; } .rrank { margin: 2px 0 8px; }
+    .rbtns { flex-direction: row; } .rbtns .btn { padding: 11px; font-size: 16px; } }
+</style>
+</head>
+<body>
+
+<section id="join">
+  <img class="logo" src="/icon.svg" alt="">
+  <h1>부력 잠수함</h1>
+  <p class="sub">버튼 하나로 밸러스트 탱크에 공기를 넣고 빼며<br>바닷속 장애물을 피해 끝까지 가 보세요!</p>
+  <div class="field"><label for="sid">학번</label><input class="txt" id="sid" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="예: 10312"></div>
+  <div class="field"><label for="nm">이름</label><input class="txt" id="nm" maxlength="12" autocomplete="off" placeholder="이름"></div>
+  <button class="go" id="joinBtn">입장</button>
+  <div class="err" id="joinErr"></div>
+</section>
+
+<section id="lobby" class="hidden">
+  <div class="bar">
+    <img src="/icon.svg" alt="">
+    <span class="conn off" id="conn" title="연결 상태"></span>
+    <span class="me" id="meName"></span>
+    <button class="iconbtn spring" id="themeBtn" title="화면 밝기"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+    <button class="iconbtn" id="outBtn">나가기</button>
+  </div>
+
+  <div class="card coursecard" id="courseCard"></div>
+
+  <div class="card">
+    <h2>순위 <span id="boardTotal"></span></h2>
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="card howto">
+    <h2>조종 방법</h2>
+    잠수함 앞뒤의 <b>밸러스트 탱크</b> 안에 <b>공기탱크</b>가 있어요. 공기탱크가 부풀면 물이 밀려 나가 가벼워지고, 줄어들면 물이 들어와 무거워져요.
+    <div class="two">
+      <div>
+        <svg viewBox="0 0 120 88"><rect x="30" y="10" width="60" height="60" rx="10" fill="#0ea5e9" stroke="#0369a1" stroke-width="3"/><rect x="35" y="16" width="50" height="44" rx="14" fill="#fffbeb" stroke="#f97316" stroke-width="2.5"/><rect x="57" y="10" width="6" height="7" fill="#f97316"/><path d="M8 20 H30" stroke="#f59e0b" stroke-width="4"/><path d="M14 14 l8 6 -8 6" fill="none" stroke="#f59e0b" stroke-width="3"/><path d="M50 72 v12 M60 72 v12 M70 72 v12" stroke="#0ea5e9" stroke-width="3"/><path d="M46 80 l4 5 4-5 M56 80 l4 5 4-5 M66 80 l4 5 4-5" fill="none" stroke="#0ea5e9" stroke-width="2.5"/><text x="60" y="42" text-anchor="middle" font-size="11" font-weight="800" fill="#c2410c">공기탱크</text></svg>
+        <b>누르고 있으면</b><br>공기탱크가 풍선처럼 부풀어 물을 밀어내요 → 가벼워져 <b>뜬다</b>
+      </div>
+      <div>
+        <svg viewBox="0 0 120 88"><rect x="30" y="10" width="60" height="60" rx="10" fill="#0ea5e9" stroke="#0369a1" stroke-width="3"/><rect x="51" y="16" width="18" height="12" rx="6" fill="#fffbeb" stroke="#f97316" stroke-width="2"/><rect x="57" y="10" width="6" height="7" fill="#f97316"/><path d="M60 10 V2" stroke="#16a34a" stroke-width="4"/><circle cx="56" cy="6" r="3" fill="#bae6fd"/><circle cx="66" cy="3" r="2" fill="#bae6fd"/><path d="M50 84 v-12 M60 84 v-12 M70 84 v-12" stroke="#0ea5e9" stroke-width="3"/><path d="M46 76 l4-5 4 5 M56 76 l4-5 4 5 M66 76 l4-5 4 5" fill="none" stroke="#0ea5e9" stroke-width="2.5"/><text x="60" y="50" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">물</text></svg>
+        <b>떼면</b><br>공기탱크의 공기가 빠지고 <b>수압</b>으로 물이 들어와요 → 무거워져 <b>가라앉는다</b>
+      </div>
+    </div>
+    화면 아무 곳이나 누르거나 <b>스페이스바</b>를 누르세요. 깊이 내려갈수록 수압이 커서 물이 더 빨리 들어와요.<br>
+    점수: <b>간 거리(m)</b> + <b>진주 30점</b> + 완주하면 <b>300점</b> + <b>남은 선체 1칸당 100점</b>. 선체는 3칸, 다 부서지면 침몰!
+  </div>
+</section>
+
+<section id="game" class="hidden">
+  <canvas id="cv"></canvas>
+  <button id="quit">그만두기</button>
+  <div id="resultBox" class="hidden"><div class="rcard" id="rcard"></div></div>
+</section>
+
+<div id="toast"></div>
+
+<script src="/sim.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+  sset(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+};
+const DIFF = { easy: '쉬움', normal: '보통', hard: '어려움' };
+const { C, Sim, HULL_DX } = window.SubSim;
+
+let toastT = 0;
+function toast(msg, ms = 2600) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+$('#themeBtn').onclick = () => {
+  const d = document.documentElement, n = d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  d.setAttribute('data-theme', n); store.set('sub_theme', n);
+};
+
+// ── 입장 · 연결 ─────────────────────────────────────────────
+let token = store.sget('sub_token');
+if (!token) { token = Math.random().toString(36).slice(2) + Date.now().toString(36); store.sset('sub_token', token); }
+$('#sid').value = store.get('sub_sid') || '';
+$('#nm').value = store.get('sub_name') || '';
+
+let ws = null, wsOK = false, me = null, course = null, status = null, wantConn = false, retry = 0;
+let pendingEnd = null; // 연결이 끊긴 채 끝난 주행 — 다시 연결되면 보낸다
+
+function send(o) { if (ws && wsOK) ws.send(JSON.stringify(o)); }
+
+function doJoin() {
+  const sid = $('#sid').value.trim(), nm = $('#nm').value.trim();
+  if (!nm) { $('#joinErr').textContent = '이름을 넣어 주세요.'; return; }
+  store.set('sub_sid', sid); store.set('sub_name', nm); store.sset('sub_joined', '1');
+  wantConn = true;
+  connect();
+}
+$('#joinBtn').onclick = doJoin;
+$('#nm').onkeydown = e => { if (e.key === 'Enter') doJoin(); };
+$('#sid').onkeydown = e => { if (e.key === 'Enter') $('#nm').focus(); };
+$('#outBtn').onclick = () => {
+  wantConn = false; me = null; if (ws) ws.close(); store.sset('sub_joined', '');
+  store.sset('sub_token', ''); token = Math.random().toString(36).slice(2) + Date.now().toString(36); store.sset('sub_token', token);
+  $('#lobby').classList.add('hidden'); $('#join').classList.remove('hidden');
+};
+
+function connect() {
+  const q = new URLSearchParams({ name: store.get('sub_name') || '', sid: store.get('sub_sid') || '', token });
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws?${q}`);
+  ws.onopen = () => {
+    wsOK = true; retry = 0; $('#conn').classList.remove('off');
+    if (pendingEnd) send(pendingEnd);
+  };
+  ws.onclose = () => {
+    wsOK = false; $('#conn').classList.add('off');
+    if (!wantConn) return;
+    if (!me) { $('#joinErr').textContent = '서버에 연결할 수 없어요. 와이파이를 확인하세요.'; }
+    setTimeout(() => { if (wantConn) connect(); }, Math.min(4000, 500 * ++retry));
+  };
+  ws.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onMsg(m); };
+}
+
+function onMsg(m) {
+  switch (m.t) {
+    case 'hello':
+      me = m; $('#meName').textContent = (m.sid ? m.sid + ' ' : '') + m.name;
+      if (!game) { $('#join').classList.add('hidden'); $('#lobby').classList.remove('hidden'); }
+      break;
+    case 'course': {
+      const old = course;
+      course = m.course;
+      if (game && game.running && (!course || course.id !== game.courseId)) {
+        abortGame('선생님이 새 코스를 열었어요. 새 코스로 다시 출발하세요.');
+      }
+      if (old && course && old.id !== course.id && !game) toast('새 코스가 열렸어요: ' + course.name);
+      if (old && course && old.id === course.id && old.open !== course.open && !game)
+        toast(course.open ? '기록이 시작됐어요! 공식 도전을 해 보세요.' : '기록이 마감됐어요.');
+      renderLobby();
+      break;
+    }
+    case 'status': status = m; renderLobby(); if (game && game.resultShown) renderResult(); break;
+    case 'go': if (game && game.waitGo) beginRun(m); break;
+    case 'resume': // 새로고침 등으로 화면의 주행이 사라졌으면 서버 주행도 정리
+      if (!game || game.runId !== m.run) send({ t: 'quit', run: m.run });
+      break;
+    case 'ghosts': if (game) game.ghosts = m.g; if (game) game.ghostAt = performance.now(); break;
+    case 'result':
+      if (pendingEnd && pendingEnd.run === m.run) pendingEnd = null;
+      if (game && game.runId === m.run) { game.server = m; renderResult(); }
+      break;
+    case 'err':
+      toast(m.msg, 3500);
+      if (game && game.waitGo) closeGame();
+      break;
+  }
+}
+
+// ── 로비 ────────────────────────────────────────────────────
+function renderLobby() {
+  const cc = $('#courseCard');
+  if (!course) {
+    cc.innerHTML = `<div class="cn">코스 준비 중</div><div class="note">선생님이 코스를 만들 때까지 기다려 주세요.</div>`;
+    $('#board').innerHTML = '<div class="empty">아직 기록이 없어요.</div>'; $('#boardTotal').textContent = '';
+    return;
+  }
+  const st = status || {};
+  const tries = st.tries || 0, lim = course.limit || 0;
+  const left = lim ? Math.max(0, lim - tries) : Infinity;
+  const my = st.me;
+  let action;
+  if (course.open) {
+    action = `<button class="btn" id="startBtn" ${left <= 0 ? 'disabled' : ''}>
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>출발! (공식 도전)</button>
+      <div class="note">${lim ? (left > 0 ? `도전 <b>${left}</b>번 남음 · 가장 높은 점수가 기록돼요` : '도전 횟수를 다 썼어요. 수고했어요!')
+                            : '몇 번이든 도전할 수 있어요 · 가장 높은 점수가 기록돼요'}</div>`;
+  } else {
+    action = `<button class="btn prac" id="pracBtn">연습 주행</button>
+      <div class="note">선생님이 <b>기록 시작</b>을 누르면 공식 도전을 할 수 있어요.<br>연습은 기록되지 않아요.</div>`;
+  }
+  cc.innerHTML = `<div class="cn">${esc(course.name)}</div>
+    <div class="meta"><span>${course.length} m</span>·<span>${DIFF[course.diff] || ''}</span>
+      ${course.open ? '<span class="badge open">기록 중</span>' : '<span class="badge prac">연습만 가능</span>'}
+      ${lim ? `<span class="badge">도전 ${lim}회</span>` : ''}</div>
+    <div class="mine"><div><b>${my ? my.score : '-'}</b><span>내 최고 점수</span></div>
+      <div><b>${my ? my.rank + '위' : '-'}</b><span>순위${st.total ? ' / ' + st.total + '명' : ''}</span></div>
+      <div><b>${tries}${lim ? '/' + lim : ''}</b><span>도전 횟수</span></div></div>
+    ${action}`;
+  const sb = $('#startBtn'); if (sb) sb.onclick = () => openGame(false);
+  const pb = $('#pracBtn'); if (pb) pb.onclick = () => openGame(true);
+
+  const top = st.top || [];
+  $('#boardTotal').textContent = st.total ? `· ${st.total}명` : '';
+  if (!top.length) { $('#board').innerHTML = '<div class="empty">아직 기록이 없어요. 첫 기록의 주인공이 되어 보세요!</div>'; return; }
+  let h = top.map(r => `<div class="brow r${r.rank}${r.me ? ' me' : ''}"><span class="rk">${r.rank}</span>
+    <span class="nm">${esc(r.name)}</span>${r.fin ? '<span class="fin">완주</span>' : ''}<span class="sc">${r.score}</span></div>`).join('');
+  if (my && !top.some(r => r.me)) {
+    h += `<div class="gap">⋮</div><div class="brow me"><span class="rk">${my.rank}</span><span class="nm">${esc(my.name)}</span>
+      ${my.fin ? '<span class="fin">완주</span>' : ''}<span class="sc">${my.score}</span></div>`;
+  }
+  $('#board').innerHTML = h;
+}
+
+// ── 게임 ────────────────────────────────────────────────────
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let game = null, W = 0, H = 0, DPR = 1, L = null;
+
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  layout();
+}
+window.addEventListener('resize', resize);
+
+// 화면 배치: 가로 화면이면 왼쪽에 탱크 단면 패널(잠수함 뒤쪽 = 이미 지나온 곳이라 가려도 됨),
+// 세로 화면이면 위에 바다, 아래에 패널.
+const SKY = 6, BED = 62; // 보이는 수심 범위 -6..62
+function layout() {
+  const land = W >= H * 1.05;
+  if (land) {
+    const pw = Math.round(Math.max(130, Math.min(W * 0.22, 240)));
+    const scale = H / (SKY + BED);
+    L = { land, pw, scale, top: 0, wh: H, subX: pw + 9 * scale + 24, panel: { x: 0, y: 0, w: pw, h: H } };
+  } else {
+    const scale = Math.min(W / 72, H * 0.56 / (SKY + BED));
+    const wh = scale * (SKY + BED);
+    L = { land, pw: 0, scale, top: 0, wh, subX: Math.max(W * 0.2, 7 * scale), panel: { x: 0, y: wh, w: W, h: H - wh } };
+  }
+}
+
+function openGame(practice) {
+  if (!course) return;
+  if (!wsOK) { toast('서버와 연결이 끊겼어요. 잠시 후 다시 해 보세요.'); return; }
+  game = { waitGo: true, practice, courseId: course.id, course, ghosts: [], parts: [], floats: [], shake: 0, flash: 0 };
+  $('#lobby').classList.add('hidden'); $('#game').classList.remove('hidden');
+  $('#resultBox').classList.add('hidden'); $('#quit').classList.remove('hidden');
+  resize();
+  game.sim = new Sim(course);
+  send({ t: 'start', practice });
+  lastT = performance.now();
+  if (!rafOn) { rafOn = true; requestAnimationFrame(frame); }
+}
+
+function beginRun(m) {
+  Object.assign(game, { waitGo: false, runId: m.run, countdown: 3, running: false, toggles: [], last: false,
+    acc: 0, posAt: 0, startAt: performance.now() });
+}
+
+function closeGame() {
+  game = null; pressKeys.clear(); pointers.clear();
+  $('#game').classList.add('hidden'); $('#lobby').classList.remove('hidden');
+  renderLobby();
+}
+
+function abortGame(msg) {
+  if (game && game.runId && !game.finished) send({ t: 'quit', run: game.runId });
+  closeGame(); toast(msg, 4000);
+}
+
+$('#quit').onclick = e => {
+  e.stopPropagation();
+  if (!game) return;
+  if (game.finished) { closeGame(); return; }
+  const warn = !game.practice && course && course.limit ? '\n(그만둬도 도전 1회가 사용돼요)' : '';
+  if (game.running && !confirm('주행을 그만둘까요?' + warn)) return;
+  if (game.runId) send({ t: 'quit', run: game.runId });
+  closeGame();
+};
+$('#quit').addEventListener('pointerdown', e => e.stopPropagation());
+
+// 입력: 화면 아무 곳 누르기(여러 손가락 OK) 또는 스페이스·↑·W
+const pointers = new Set(), pressKeys = new Set();
+const pressed = () => pointers.size > 0 || pressKeys.size > 0;
+cv.addEventListener('pointerdown', e => { pointers.add(e.pointerId); try { cv.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); });
+const up = e => pointers.delete(e.pointerId);
+cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
+cv.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('keydown', e => {
+  if (!game) return;
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { pressKeys.add(e.code); e.preventDefault(); }
+});
+window.addEventListener('keyup', e => pressKeys.delete(e.code));
+window.addEventListener('blur', () => { pressKeys.clear(); pointers.clear(); });
+
+let rafOn = false, lastT = 0;
+function frame(now) {
+  if (!game) { rafOn = false; return; }
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  update(dt, now);
+  draw(now / 1000);
+  requestAnimationFrame(frame);
+}
+
+function update(dt, now) {
+  const g = game;
+  if (g.countdown > 0) {
+    g.countdown -= dt;
+    if (g.countdown <= 0) { g.running = true; g.acc = 0; }
+  } else if (g.running) {
+    g.acc += dt;
+    const s = g.sim;
+    while (g.acc >= C.DT && !s.done) {
+      g.acc -= C.DT;
+      const p = pressed();
+      if (p !== g.last) { g.toggles.push(s.tick); g.last = p; }
+      const hp0 = s.hp, pe0 = s.nPearls;
+      s.step(p);
+      emitParticles(s, p);
+      if (s.hp < hp0) { g.shake = 0.35; g.flash = 0.5; g.floats.push({ x: s.x + 2, y: s.y - 3, txt: s.lastHit === 'bed' ? '쿵! 해저 충돌' : '쿵! 선체 손상', col: '#fca5a5', life: 1.2 }); }
+      if (s.nPearls > pe0) { g.floats.push({ x: s.x + 3, y: s.y - 2.5, txt: '+30', col: '#fde68a', life: 1 }); sparkle(s.pearls[s.lastPearl]); }
+    }
+    g.pressedNow = pressed();
+    if (now - g.posAt > 250) {
+      g.posAt = now;
+      send({ t: 'pos', run: g.runId, x: +s.x.toFixed(1), y: +s.y.toFixed(1), hp: s.hp, sc: s.score() });
+    }
+    if (s.done && !g.finished) finishRun();
+  }
+  g.pressedNow = pressed();
+  // 화면 효과(물리와 무관)
+  g.shake = Math.max(0, g.shake - dt); g.flash = Math.max(0, g.flash - dt);
+  for (const p of g.parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.k === 'bub') { p.vy -= 1.5 * dt; p.x += Math.sin(p.life * 9 + p.ph) * 0.02; if (p.y < 0.2) p.life = 0; }
+    else { p.vx *= 0.96; p.vy *= 0.94; } }
+  g.parts = g.parts.filter(p => p.life > 0);
+  if (g.parts.length > 500) g.parts.splice(0, g.parts.length - 500);
+  for (const f of g.floats) { f.life -= dt; f.y -= dt * 2; }
+  g.floats = g.floats.filter(f => f.life > 0);
+}
+
+// 탱크 위치(선체 기준 x): 앞 탱크 4.1, 뒤 탱크 -4.2
+const TANKS = [4.1, -4.2];
+function emitParticles(s, p) {
+  const g = game;
+  if (s.tick % 2) return;
+  for (const tx of TANKS) {
+    const wx = s.x + tx;
+    if (p && s.air < 1) { // 물이 아래 구멍으로 밀려 나감
+      g.parts.push({ k: 'jet', x: wx + (Math.random() - .5) * .6, y: s.y + 1.6, vx: -1 + Math.random(), vy: 4 + Math.random() * 2, life: .5, ph: 0 });
+    } else if (p && s.air >= 1 && Math.random() < .5) { // 탱크가 공기로 가득 → 남는 공기가 아래로 넘쳐 올라감
+      g.parts.push({ k: 'bub', x: wx, y: s.y + 1.8, vx: 0, vy: -1, life: 3, r: .25 + Math.random() * .2, ph: Math.random() * 6 });
+    } else if (!p && s.air > 0) { // 벤트로 공기가 빠져나감 + 아래로 물이 들어옴
+      g.parts.push({ k: 'bub', x: wx + (Math.random() - .5) * .3, y: s.y - 1.8, vx: 0, vy: -2.5, life: 4, r: .2 + Math.random() * .25, ph: Math.random() * 6 });
+      if (Math.random() < .6) g.parts.push({ k: 'in', x: wx + (Math.random() - .5) * .8, y: s.y + 2.8, vx: 0, vy: -3.2, life: .32, ph: 0 });
+    }
+  }
+}
+function sparkle(p) {
+  if (!p) return;
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2;
+    game.parts.push({ k: 'spark', x: p.x, y: p.y, vx: Math.cos(a) * 6, vy: Math.sin(a) * 6, life: .45, ph: 0 }); }
+}
+
+function finishRun() {
+  const g = game, s = g.sim;
+  g.finished = true; g.running = false;
+  g.endMsg = { t: 'end', run: g.runId, toggles: g.toggles };
+  pendingEnd = g.endMsg;
+  send(g.endMsg);
+  setTimeout(() => { if (game === g) { g.resultShown = true; renderResult(); } }, s.done === 'crash' ? 1200 : 700);
+}
+
+function renderResult() {
+  const g = game; if (!g || !g.resultShown) return;
+  const s = g.sim, sv = g.server;
+  const fin = s.done === 'finish';
+  const lim = course ? course.limit : 0, tries = status ? status.tries : 0;
+  const canAgain = course && course.id === g.courseId && (g.practice ? !course.open : course.open && (!lim || tries < lim));
+  let rank = '';
+  if (g.practice) rank = '<span style="color:var(--mut)">연습 주행 — 기록되지 않아요</span>';
+  else if (!sv) rank = wsOK ? '<span style="color:var(--mut)">서버가 점수를 확인하는 중…</span>' : '<span style="color:var(--bad)">연결이 끊겼어요 — 다시 연결되면 기록돼요</span>';
+  else if (sv.void) rank = `<span style="color:var(--bad)">${esc(sv.msg)}</span>`;
+  else rank = (sv.newBest ? '🎉 내 최고 기록! · ' : '') + `현재 <b>${sv.rank}위</b> / ${sv.total}명` + (sv.newBest ? '' : ` · 최고 ${sv.best}점`);
+  const score = sv && !sv.void ? sv.score : s.score();
+  $('#rcard').innerHTML = `
+    <div class="rt ${fin ? 'fin' : 'crash'}">${fin ? '완주!' : '침몰…'}</div>
+    <div class="rsub">${fin ? '끝까지 돌파했어요' : `${s.dist()} m 지점에서 선체가 부서졌어요`}</div>
+    <div class="rline"><span>간 거리</span><b>${s.dist()} m → ${s.dist()}점</b></div>
+    <div class="rline"><span>진주</span><b>${s.nPearls}개 × 30 = ${s.nPearls * 30}점</b></div>
+    ${fin ? `<div class="rline"><span>완주 보너스</span><b>300점</b></div>
+    <div class="rline"><span>남은 선체</span><b>${s.hp}칸 × 100 = ${s.hp * 100}점</b></div>` : ''}
+    <div class="rtotal"><span>점수</span><b>${score}</b></div>
+    <div class="rrank ${sv && sv.newBest ? 'best' : ''}">${rank}</div>
+    <div class="rbtns">
+      ${canAgain ? `<button class="btn" id="againBtn">${g.practice ? '다시 연습' : '다시 도전'}${!g.practice && lim ? ` (${Math.max(0, lim - tries)}번 남음)` : ''}</button>` : ''}
+      <button class="btn ghost" id="lobbyBtn">로비로</button>
+    </div>`;
+  $('#resultBox').classList.remove('hidden'); $('#quit').classList.add('hidden');
+  const ab = $('#againBtn'); if (ab) ab.onclick = () => { const pr = g.practice; closeGame(); openGame(pr); };
+  $('#lobbyBtn').onclick = closeGame;
+}
+
+// ── 그리기 ──────────────────────────────────────────────────
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+function draw(t) {
+  const g = game, s = g.sim;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const k = L.scale;
+  let camX = s.x;
+  let shx = 0, shy = 0;
+  if (g.shake > 0) { shx = (Math.random() - .5) * 10 * g.shake; shy = (Math.random() - .5) * 10 * g.shake; }
+  const X = x => L.subX + (x - camX) * k + shx;
+  const Y = y => L.top + (y + SKY) * k + shy;
+  const xL = camX - L.subX / k - 2, xR = camX + (W - L.subX) / k + 2;
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, L.top, W, L.wh); ctx.clip();
+  drawSea(t, X, Y, k, camX, xL, xR);
+  drawObstacles(t, X, Y, k, xL, xR);
+  // 도착선
+  if (s.length < xR) {
+    const fx = X(s.length);
+    for (let i = 0; i < 16; i++) { ctx.fillStyle = i % 2 ? '#fff' : '#111'; ctx.fillRect(fx - k * .6, Y(i * 3.75), k * 1.2, k * 3.75); }
+    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(fx, Y(-5.5)); ctx.lineTo(fx + k * 4, Y(-4.5)); ctx.lineTo(fx, Y(-3.5)); ctx.fill();
+    ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fx, Y(-5.5)); ctx.lineTo(fx, Y(0)); ctx.stroke();
+    ctx.fillStyle = '#0f172a'; ctx.font = `900 ${Math.max(12, k * 2)}px system-ui`; ctx.textAlign = 'left'; ctx.fillText('도착', fx + k * 1.2, Y(-1.2));
+  }
+  // 다른 학생(유령)
+  if (g.ghosts && performance.now() - (g.ghostAt || 0) < 3000) {
+    for (const gh of g.ghosts) {
+      if (gh.x < xL - 6 || gh.x > xR + 6) continue;
+      ctx.save(); ctx.translate(X(gh.x), Y(gh.y)); ctx.scale(k, k); ctx.globalAlpha = .35;
+      hullPath(); ctx.fillStyle = '#e2e8f0'; ctx.fill(); sailPath(); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `700 ${Math.max(10, k * 1.5)}px system-ui`; ctx.textAlign = 'center';
+      ctx.fillText(gh.n, X(gh.x), Y(gh.y - 4));
+    }
+  }
+  // 입자
+  for (const p of g.parts) {
+    if (p.x < xL || p.x > xR) continue;
+    const a = Math.min(1, p.life * 3);
+    if (p.k === 'bub') { ctx.strokeStyle = `rgba(224,242,254,${.8 * a})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), Math.max(1.5, p.r * k), 0, 7); ctx.stroke(); }
+    else if (p.k === 'jet') { ctx.strokeStyle = `rgba(125,211,252,${.9 * a})`; ctx.lineWidth = Math.max(1.5, k * .25); ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.y)); ctx.lineTo(X(p.x - p.vx * .08), Y(p.y - p.vy * .08)); ctx.stroke(); }
+    else if (p.k === 'in') { ctx.strokeStyle = `rgba(56,189,248,${.9 * a})`; ctx.lineWidth = Math.max(1.5, k * .22); ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.y)); ctx.lineTo(X(p.x), Y(p.y + .7)); ctx.stroke(); }
+    else { ctx.fillStyle = `rgba(254,240,138,${a})`; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), Math.max(1.5, k * .25), 0, 7); ctx.fill(); }
+  }
+  // 내 잠수함(단면)
+  const blink = s.inv > 0 && Math.floor(t * 12) % 2 === 0;
+  const tilt = Math.max(-.22, Math.min(.22, s.vy * .035));
+  ctx.save(); ctx.translate(X(s.x), Y(s.y)); ctx.rotate(tilt); ctx.scale(k, k);
+  if (blink) ctx.globalAlpha = .45;
+  drawSubCutaway(t, s.air, g.pressedNow && g.running);
+  ctx.restore();
+  // 떠오르는 글자
+  for (const f of g.floats) {
+    ctx.globalAlpha = Math.min(1, f.life * 2); ctx.fillStyle = f.col; ctx.font = `900 ${Math.max(14, k * 2.4)}px system-ui`; ctx.textAlign = 'center';
+    ctx.fillText(f.txt, X(f.x), Y(f.y)); ctx.globalAlpha = 1;
+  }
+  if (g.flash > 0) { ctx.fillStyle = `rgba(239,68,68,${g.flash * .5})`; ctx.fillRect(0, 0, W, H); }
+  ctx.restore();
+
+  drawPanel(t, s);
+  drawHud(s);
+  if (g.waitGo) centerText('연결 중…', 28);
+  else if (g.countdown > 0) {
+    centerText(String(Math.ceil(g.countdown)), 72);
+    centerText('누르면 공기 주입(뜬다) · 떼면 공기 빼기(가라앉는다)', 16, 56);
+    if (g.practice) centerText('연습 주행', 18, -64, '#fde68a');
+  }
+}
+
+function centerText(txt, size, dy = 0, col = '#fff') {
+  const cx = L.land ? L.pw + (W - L.pw) / 2 : W / 2, cy = L.land ? H / 2 : L.wh / 2;
+  ctx.font = `900 ${size}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = Math.max(3, size / 8); ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.strokeText(txt, cx, cy + dy);
+  ctx.fillStyle = col; ctx.fillText(txt, cx, cy + dy); ctx.textBaseline = 'alphabetic';
+}
+
+function drawSea(t, X, Y, k, camX, xL, xR) {
+  // 하늘
+  let gr = ctx.createLinearGradient(0, Y(-SKY), 0, Y(0));
+  gr.addColorStop(0, '#8fd3f4'); gr.addColorStop(1, '#d9f2fd');
+  ctx.fillStyle = gr; ctx.fillRect(0, Y(-SKY) - 50, W, Y(0) - Y(-SKY) + 50);
+  // 바다(깊을수록 어둡다)
+  gr = ctx.createLinearGradient(0, Y(0), 0, Y(60));
+  gr.addColorStop(0, '#2aa4d5'); gr.addColorStop(.35, '#0f6b9e'); gr.addColorStop(1, '#05223f');
+  ctx.fillStyle = gr; ctx.fillRect(0, Y(0), W, Y(BED) - Y(0) + 50);
+  // 햇빛 줄기
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let i = Math.floor(xL / 25); i < xR / 25; i++) {
+    const bx = i * 25 + hash(i) * 12, sw = Math.sin(t * .6 + i) * 2;
+    ctx.fillStyle = 'rgba(180,230,255,.05)';
+    ctx.beginPath(); ctx.moveTo(X(bx), Y(0)); ctx.lineTo(X(bx + 4), Y(0)); ctx.lineTo(X(bx + 12 + sw), Y(40)); ctx.lineTo(X(bx + 4 + sw), Y(40)); ctx.fill();
+  }
+  ctx.restore();
+  // 먼 바위 실루엣(시차 0.5)
+  ctx.fillStyle = 'rgba(3,25,48,.55)';
+  ctx.beginPath(); ctx.moveTo(0, Y(BED));
+  const px = camX * .5;
+  for (let sx = 0; sx <= W + 20; sx += 20) {
+    const wx = (sx - L.subX) / k + px;
+    const h = 8 + Math.sin(wx * .05) * 5 + Math.sin(wx * .13 + 1) * 3;
+    ctx.lineTo(sx, Y(60 - h));
+  }
+  ctx.lineTo(W + 20, Y(BED)); ctx.fill();
+  // 떠다니는 플랑크톤
+  ctx.fillStyle = 'rgba(200,235,255,.25)';
+  for (let i = Math.floor(xL / 4); i < xR / 4; i++) {
+    const y = 3 + hash(i) * 55 + Math.sin(t + i) * .5;
+    ctx.fillRect(X(i * 4 + hash(i + 9) * 4), Y(y), 1.5, 1.5);
+  }
+  // 수면 물결
+  ctx.fillStyle = 'rgba(255,255,255,.55)';
+  ctx.beginPath(); ctx.moveTo(0, Y(0));
+  for (let sx = 0; sx <= W + 10; sx += 10) {
+    const wx = (sx - L.subX) / k + camX;
+    ctx.lineTo(sx, Y(Math.sin(wx * .4 + t * 2) * .25));
+  }
+  ctx.lineTo(W + 10, Y(.6)); ctx.lineTo(0, Y(.6)); ctx.fill();
+  // 해초
+  for (let i = Math.floor(xL / 9); i < xR / 9; i++) {
+    if (hash(i + 3) < .45) continue;
+    const bx = i * 9 + hash(i) * 6, hh = 2 + hash(i + 1) * 5;
+    ctx.strokeStyle = hash(i + 2) > .5 ? '#15803d' : '#166534'; ctx.lineWidth = Math.max(2, k * .35);
+    ctx.beginPath(); ctx.moveTo(X(bx), Y(60));
+    ctx.quadraticCurveTo(X(bx + Math.sin(t * 1.5 + i) * 1.2), Y(60 - hh / 2), X(bx + Math.sin(t * 1.5 + i + 1) * 1.5), Y(60 - hh));
+    ctx.stroke();
+  }
+  // 해저 모래(60m 아래로만 울퉁불퉁 — 판정선보다 위로 튀어나오지 않게)
+  gr = ctx.createLinearGradient(0, Y(60), 0, Y(BED));
+  gr.addColorStop(0, '#c2a36b'); gr.addColorStop(1, '#8a6d3b');
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(0, Y(60));
+  for (let sx = 0; sx <= W + 20; sx += 20) { const wx = (sx - L.subX) / k + camX; ctx.lineTo(sx, Y(60 + .3 + Math.sin(wx * .3) * .3)); }
+  ctx.lineTo(W + 20, Y(BED) + 50); ctx.lineTo(0, Y(BED) + 50); ctx.fill();
+}
+
+function drawObstacles(t, X, Y, k, xL, xR) {
+  const c = game.course, s = game.sim;
+  for (let i = 0; i < c.obs.length; i++) {
+    const o = c.obs[i];
+    if (o.x2 < xL || o.x1 > xR) continue;
+    if (o.k === 'rock') {
+      const gr = ctx.createLinearGradient(X(o.x1), 0, X(o.x2), 0);
+      gr.addColorStop(0, '#5b4a3a'); gr.addColorStop(.5, '#7a6552'); gr.addColorStop(1, '#4a3b2e');
+      ctx.fillStyle = gr;
+      ctx.beginPath(); ctx.moveTo(X(o.x1), Y(o.y2 + 1));
+      const n = Math.max(2, Math.round((o.x2 - o.x1) / 1.5));
+      for (let j = 0; j <= n; j++) { const xx = o.x1 + (o.x2 - o.x1) * j / n; ctx.lineTo(X(xx), Y(o.y1 + (j === 0 || j === n ? .6 : hash(i * 31 + j) * .8))); }
+      ctx.lineTo(X(o.x2), Y(o.y2 + 1)); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1;
+      for (let j = 1; j < 4; j++) { const yy = o.y1 + (o.y2 - o.y1) * j / 4 + hash(i + j) * 2; ctx.beginPath(); ctx.moveTo(X(o.x1 + .5), Y(yy)); ctx.lineTo(X(o.x2 - .5), Y(yy + 1)); ctx.stroke(); }
+      ctx.fillStyle = '#16a34a';
+      for (let j = 0; j < 3; j++) { const xx = o.x1 + (o.x2 - o.x1) * (.2 + .3 * j); ctx.beginPath(); ctx.ellipse(X(xx), Y(o.y1 + .7), k * .5, k * .9, Math.sin(t + j) * .3, 0, 7); ctx.fill(); }
+    } else if (o.k === 'ice') {
+      const gr = ctx.createLinearGradient(0, Y(-4), 0, Y(o.y2));
+      gr.addColorStop(0, '#ffffff'); gr.addColorStop(.25, '#e0f7ff'); gr.addColorStop(1, '#9fdcf5');
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      const w = o.x2 - o.x1, peak = Math.min(5, 1.5 + w * .25);
+      ctx.moveTo(X(o.x1), Y(0)); ctx.lineTo(X(o.x1 + w * .3), Y(-peak)); ctx.lineTo(X(o.x1 + w * .55), Y(-peak * .7)); ctx.lineTo(X(o.x1 + w * .75), Y(-peak * .9)); ctx.lineTo(X(o.x2), Y(0));
+      const n = Math.max(2, Math.round(w / 1.5));
+      for (let j = n; j >= 0; j--) { const xx = o.x1 + w * j / n; ctx.lineTo(X(xx), Y(o.y2 - (j === 0 || j === n ? 1.2 : hash(i * 17 + j) * 1.2))); }
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(14,116,144,.35)'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.moveTo(X(o.x1 + w * .3), Y(2)); ctx.lineTo(X(o.x1 + w * .45), Y(o.y2 * .6)); ctx.stroke();
+    } else if (o.k === 'mine') {
+      const cx = X(o.cx), cy = Y(o.cy), r = o.r * k;
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = Math.max(1, k * .15); ctx.setLineDash([k * .4, k * .25]);
+      ctx.beginPath(); ctx.moveTo(cx, cy + r); ctx.lineTo(cx, Y(60)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = '#1f2937'; ctx.lineWidth = Math.max(1.5, k * .25);
+      for (let j = 0; j < 8; j++) { const a = j / 8 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r * .6, cy + Math.sin(a) * r * .6); ctx.lineTo(cx + Math.cos(a) * r * 1.12, cy + Math.sin(a) * r * 1.12); ctx.stroke(); }
+      const gr = ctx.createRadialGradient(cx - r * .3, cy - r * .3, r * .1, cx, cy, r * .9);
+      gr.addColorStop(0, '#6b7280'); gr.addColorStop(1, '#111827');
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(cx, cy, r * .85, 0, 7); ctx.fill();
+      ctx.fillStyle = Math.floor(t * 2 + i) % 2 ? '#ef4444' : '#7f1d1d'; ctx.beginPath(); ctx.arc(cx, cy - r * .2, Math.max(1.5, r * .15), 0, 7); ctx.fill();
+    }
+  }
+  for (let i = 0; i < c.pearls.length; i++) {
+    const p = c.pearls[i];
+    if (p.x < xL || p.x > xR || s.got[i]) continue;
+    const px = X(p.x), py = Y(p.y + Math.sin(t * 2 + i) * .15), r = C.PEARL_R * k;
+    const gr = ctx.createRadialGradient(px, py, 0, px, py, r * 2.2);
+    gr.addColorStop(0, 'rgba(255,250,220,.55)'); gr.addColorStop(1, 'rgba(255,250,220,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(px, py, r * 2.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f9a8d4'; ctx.beginPath(); ctx.ellipse(px, py + r * .45, r * 1.1, r * .5, 0, 0, Math.PI); ctx.fill();
+    const g2 = ctx.createRadialGradient(px - r * .3, py - r * .3, r * .1, px, py, r * .8);
+    g2.addColorStop(0, '#ffffff'); g2.addColorStop(1, '#e5e7eb');
+    ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(px, py, r * .7, 0, 7); ctx.fill();
+  }
+}
+
+// 선체 모양(단위 m, 앞 = +x). 길이 11m, 높이 3.4m.
+function hullPath() {
+  ctx.beginPath();
+  ctx.moveTo(-5.6, -0.5);
+  ctx.quadraticCurveTo(-4.4, -1.7, -3.2, -1.7);
+  ctx.lineTo(3.8, -1.7);
+  ctx.bezierCurveTo(5.1, -1.7, 5.7, -0.9, 5.7, 0);
+  ctx.bezierCurveTo(5.7, 0.9, 5.1, 1.7, 3.8, 1.7);
+  ctx.lineTo(-3.2, 1.7);
+  ctx.quadraticCurveTo(-4.4, 1.7, -5.6, 0.5);
+  ctx.closePath();
+}
+function sailPath() {
+  ctx.beginPath();
+  ctx.moveTo(0.4, -1.65); ctx.lineTo(0.8, -3.0); ctx.lineTo(2.4, -3.0); ctx.lineTo(2.8, -1.65); ctx.closePath();
+}
+
+// 잠수함 단면: 선체를 잘라 앞뒤 밸러스트 탱크의 물·공기, 고압 공기통과 관, 벤트·물 구멍이 보인다.
+function drawSubCutaway(t, air, blowing) {
+  // 탑·잠망경·꼬리 날개·프로펠러
+  ctx.lineWidth = .12; ctx.strokeStyle = '#78350f';
+  ctx.fillStyle = '#f59e0b'; sailPath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(1.9, -3); ctx.lineTo(1.9, -3.8); ctx.lineTo(2.4, -3.8); ctx.stroke();
+  ctx.fillStyle = '#d97706';
+  ctx.beginPath(); ctx.moveTo(-4.6, -1.2); ctx.lineTo(-5.6, -2.3); ctx.lineTo(-5.9, -2.3); ctx.lineTo(-5.4, -0.6); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-4.6, 1.2); ctx.lineTo(-5.6, 2.3); ctx.lineTo(-5.9, 2.3); ctx.lineTo(-5.4, 0.6); ctx.fill();
+  const spin = Math.abs(Math.sin(t * 18));
+  ctx.fillStyle = '#92400e'; ctx.beginPath(); ctx.ellipse(-6.0, 0, .25, 1.1 * spin + .15, 0, 0, 7); ctx.fill();
+
+  // 선체 바탕
+  ctx.save(); hullPath(); ctx.fillStyle = '#fde68a'; ctx.fill(); ctx.clip();
+  // 밸러스트 탱크: 앞(3.0..5.8), 뒤(-5.8..-3.0). 바닷물로 차 있고, 그 안의 공기탱크(풍선)가 부풀면 물을 밀어낸다
+  const wob = balloonWobble(t, air, blowing);
+  for (const [x1, x2] of [[3.0, 5.8], [-5.8, -3.0]]) {
+    ctx.fillStyle = '#0ea5e9'; ctx.fillRect(x1, -1.8, x2 - x1, 3.6);
+    ctx.save(); ctx.beginPath(); ctx.rect(x1 + .07, -1.8, x2 - x1 - .14, 3.6); ctx.clip();
+    drawBalloon((x1 + x2) / 2, -1.7, x2 - x1 - .1, 3.35, air, wob, .07);
+    ctx.restore();
+  }
+  // 가운데 내압 선체(승무원 칸)
+  ctx.fillStyle = '#b45309'; roundRect(-2.8, -1.35, 5.6, 2.7, .5); ctx.fill();
+  ctx.fillStyle = '#fef3c7';
+  for (const wx of [-1.7, -0.3, 1.1]) { ctx.beginPath(); ctx.arc(wx, -0.45, .32, 0, 7); ctx.fill(); }
+  // 고압 공기통 두 개
+  ctx.fillStyle = '#94a3b8'; ctx.strokeStyle = '#334155'; ctx.lineWidth = .08;
+  for (const bx of [-1.9, 0.4]) { roundRect(bx, .35, 1.5, .7, .35); ctx.fill(); ctx.stroke(); }
+  // 공기관: 공기통 → 위로 → 양쪽 탱크 윗부분
+  ctx.strokeStyle = '#475569'; ctx.lineWidth = .16;
+  ctx.beginPath(); ctx.moveTo(-1.1, .35); ctx.lineTo(-1.1, -1.5); ctx.moveTo(-4.4, -1.5); ctx.lineTo(4.4, -1.5); ctx.moveTo(4.4, -1.5); ctx.lineTo(4.4, -1.62); ctx.moveTo(-4.4, -1.5); ctx.lineTo(-4.4, -1.62); ctx.stroke();
+  if (blowing && air < 1) { // 관 속 공기 흐름(공기통 → 양쪽 공기탱크)
+    ctx.strokeStyle = '#fef08a'; ctx.lineWidth = .1; ctx.setLineDash([.25, .3]); ctx.lineDashOffset = -t * 3;
+    ctx.beginPath(); ctx.moveTo(-1.1, -1.5); ctx.lineTo(4.4, -1.5); ctx.stroke();
+    ctx.lineDashOffset = t * 3; ctx.beginPath(); ctx.moveTo(-1.1, -1.5); ctx.lineTo(-4.4, -1.5); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+  // 탱크 칸막이, 선체 테두리
+  ctx.strokeStyle = '#78350f'; ctx.lineWidth = .14;
+  ctx.beginPath(); ctx.moveTo(3.0, -1.7); ctx.lineTo(3.0, 1.7); ctx.moveTo(-3.0, -1.7); ctx.lineTo(-3.0, 1.7); ctx.stroke();
+  hullPath(); ctx.lineWidth = .16; ctx.stroke();
+  // 벤트(위, 떼면 열림 = 초록) · 물 구멍(아래)
+  const ventOpen = !blowing && air > 0;
+  for (const vx of TANKS) {
+    ctx.fillStyle = ventOpen ? '#22c55e' : '#ef4444';
+    ctx.fillRect(vx - .3, -1.95, .6, .3);
+    ctx.fillStyle = '#082f49';
+    for (const hx of [-.5, 0, .5]) ctx.fillRect(vx + hx - .12, 1.55, .24, .25);
+  }
+}
+
+// 공기탱크(풍선): 목이 (cx, top)에 매달려 아래로 부푼다. 공기 비율만큼 넓이를 차지(가득 차면 탱크 벽에 눌려 네모에 가까워짐).
+function drawBalloon(cx, top, W, H, air, wob, lw) {
+  const s = .2 + .8 * Math.sqrt(air);          // 공기 0 이면 쭈글쭈글한 작은 주머니
+  const nk = H * .07, nw = Math.max(W * .09, lw * 2);
+  const bw = W * .97 * s * (1 + wob), bh = (H - nk) * .97 * s * (1 - wob);
+  const r = Math.min(bw, bh) / 2 * (1 - .55 * air);
+  const x = cx - bw / 2, y = top + nk;
+  roundRect(x, y, bw, bh, Math.max(r, .01));
+  ctx.fillStyle = 'rgba(255,251,235,.96)'; ctx.fill();
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = lw; ctx.stroke();
+  if (air < .35) { // 바람이 빠지면 주름
+    ctx.beginPath();
+    for (let i = 1; i < 4; i++) { const xx = x + bw * i / 4; ctx.moveTo(xx, y + bh * .15); ctx.quadraticCurveTo(xx + bw * .06, y + bh * .5, xx, y + bh * .85); }
+    ctx.lineWidth = lw * .6; ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.9)'; // 반짝임
+  ctx.beginPath(); ctx.ellipse(x + bw * .28, y + bh * .25, bw * .08, bh * .12, -.5, 0, 7); ctx.fill();
+  ctx.fillStyle = '#f97316'; ctx.fillRect(cx - nw / 2, top, nw, nk + lw); // 목(관과 이어짐)
+  return { x, y, bw, bh };
+}
+// 부풀거나 빠지는 중이면 고무가 살짝 출렁인다
+function balloonWobble(t, air, blowing) {
+  const moving = game && game.running && ((blowing && air < 1) || (!blowing && air > 0));
+  return moving ? Math.sin(t * 11) * .025 : 0;
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+// ── 패널: 밸러스트 탱크 확대 단면 + 힘 + 수심 + 버튼 ─────────
+function drawPanel(t, s) {
+  const P = L.panel, g = game;
+  const blowing = g.pressedNow && g.running;
+  ctx.fillStyle = 'rgba(6,22,42,.94)'; ctx.fillRect(P.x, P.y, P.w, P.h);
+  ctx.strokeStyle = 'rgba(56,189,248,.35)'; ctx.lineWidth = 2;
+  ctx.beginPath(); if (L.land) { ctx.moveTo(P.w, 0); ctx.lineTo(P.w, H); } else { ctx.moveTo(0, P.y); ctx.lineTo(W, P.y); } ctx.stroke();
+
+  let tank, force, btn;
+  if (L.land) {
+    const pad = 10, w = P.w - pad * 2;
+    const topPad = 6 + pad;
+    const bh = Math.min(w * .9, H * .17);
+    const rest = H - topPad - bh - pad * 3;
+    const fh = Math.min(rest * .34, 110);
+    tank = { x: pad, y: topPad, w, h: rest - fh };
+    force = { x: pad, y: topPad + rest - fh + pad, w, h: fh };
+    btn = { x: pad, y: H - bh - pad, w, h: bh };
+  } else {
+    const pad = 10, bh = Math.max(64, Math.min(110, P.h * .28));
+    const h = P.h - bh - pad * 3;
+    tank = { x: pad, y: P.y + pad, w: (W - pad * 3) * .55, h };
+    force = { x: pad * 2 + (W - pad * 3) * .55, y: P.y + pad, w: (W - pad * 3) * .45, h };
+    btn = { x: pad, y: P.y + P.h - bh - pad, w: W - pad * 2, h: bh };
+  }
+  drawTank(tank, t, s, blowing);
+  drawForce(force, t, s);
+  drawButton(btn, blowing);
+}
+
+function label(txt, x, y, size, col = '#e2e8f0', align = 'center', weight = 800) {
+  ctx.font = `${weight} ${size}px system-ui`; ctx.fillStyle = col; ctx.textAlign = align; ctx.fillText(txt, x, y);
+}
+
+function drawTank(b, t, s, blowing) {
+  const air = s.air, ventOpen = !blowing && air > 0 && game.running;
+  const fs = Math.max(10, Math.min(14, b.w / 13));
+  label('밸러스트 탱크 단면', b.x + b.w / 2, b.y + fs, fs + 1, '#7dd3fc');
+  // 상태 문구
+  let st, stc;
+  const narrow = b.w < 240; // 가로 폰 패널: 짧은 문구
+  if (!game.running) { st = '준비'; stc = '#cbd5e1'; }
+  else if (blowing && air < 1) { st = narrow ? '부풀어서 물을 밀어내요' : '공기탱크가 부풀어 → 물을 밀어내요'; stc = '#fde047'; }
+  else if (blowing) { st = '공기 가득 — 최대 부력'; stc = '#fde047'; }
+  else if (air > 0) { st = narrow ? '줄어들며 물이 들어와요' : '공기탱크가 줄어 → 수압에 물이 들어와요'; stc = '#7dd3fc'; }
+  else { st = '물 가득 — 가라앉아요'; stc = '#93c5fd'; }
+  const lines = wrap(st, b.w, fs - 1);
+  lines.forEach((ln, i) => label(ln, b.x + b.w / 2, b.y + fs * 2.4 + i * fs * 1.15, fs - 1, stc, 'center', 700));
+  const top0 = b.y + fs * 2.4 + lines.length * fs * 1.15 + 4;
+
+  // 탱크 본체
+  const tw = Math.min(b.w * .5, (b.h - (top0 - b.y)) * .6), tx = b.x + b.w * .58 - tw / 2;
+  const ty = top0 + fs * 1.6, th = b.y + b.h - ty - fs * 2.2;
+  if (th < 20) return;
+  // 고압 공기통(왼쪽)
+  const bw = Math.max(14, b.w * .14), bx = b.x + b.w * .1, by = ty + th * .1, bhh = th * .5;
+  ctx.fillStyle = '#94a3b8'; roundRectPx(bx, by, bw, bhh, bw / 2); ctx.fill();
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5; ctx.stroke();
+  label('고압', bx + bw / 2, by + bhh + fs, fs - 2, '#cbd5e1', 'center', 700);
+  label('공기', bx + bw / 2, by + bhh + fs * 2, fs - 2, '#cbd5e1', 'center', 700);
+  // 관: 공기통 → 탱크 위 가운데(공기탱크 목)
+  const vx = tx + tw / 2, pipeY = ty - fs * .45;
+  const pipe = () => { ctx.beginPath(); ctx.moveTo(bx + bw / 2, by); ctx.lineTo(bx + bw / 2, pipeY); ctx.lineTo(vx, pipeY); ctx.lineTo(vx, ty + 2); };
+  ctx.strokeStyle = '#64748b'; ctx.lineWidth = 5; pipe(); ctx.stroke();
+  if (blowing && air < 1) {
+    ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.5; ctx.setLineDash([5, 5]); ctx.lineDashOffset = -t * 40;
+    pipe(); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // 탱크 속: 바닷물 + 공기탱크(풍선)
+  ctx.save(); roundRectPx(tx, ty, tw, th, 10); ctx.clip();
+  const gr = ctx.createLinearGradient(0, ty, 0, ty + th); gr.addColorStop(0, '#38bdf8'); gr.addColorStop(1, '#0369a1');
+  ctx.fillStyle = gr; ctx.fillRect(tx, ty, tw, th);
+  const bl = drawBalloon(vx, ty, tw - 8, th - 4, air, balloonWobble(t, air, blowing), 3);
+  // 풍선 둘레 물의 흐름(밀려 내려감 / 스며 올라옴)
+  if (game.running && ((blowing && air < 1) || ventOpen)) {
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    for (let j = 0; j < 6; j++) {
+      const ph = (t * 1.4 + j / 6) % 1, side = j % 2 ? 1 : -1;
+      const yy = blowing ? bl.y + ph * (ty + th - bl.y) : ty + th - ph * (ty + th - bl.y - bl.bh * .5);
+      const xx = vx + side * Math.min(tw / 2 - 6, bl.bw / 2 + 4 + (j % 3));
+      ctx.beginPath(); ctx.arc(xx, yy, 2, 0, 7); ctx.fill();
+    }
+  }
+  if (bl.bh > fs * 3.2 && bl.bw > fs * 4) {
+    label('공기탱크', vx, bl.y + bl.bh / 2 - fs * .15, fs - 2, '#c2410c', 'center', 800);
+    label(`공기 ${Math.round(air * 100)}%`, vx, bl.y + bl.bh / 2 + fs * 1.05, fs, '#9a3412');
+  } else if (bl.bh > fs * 1.3) label(`${Math.round(air * 100)}%`, vx, bl.y + bl.bh / 2 + fs / 3, fs - 2, '#9a3412');
+  const wy = bl.y + bl.bh, room = ty + th - wy;
+  if (room > fs * 1.6) label(`물 ${Math.round((1 - air) * 100)}%`, vx, wy + room / 2 + fs / 3, fs, '#fff');
+  ctx.restore();
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; roundRectPx(tx, ty, tw, th, 10); ctx.stroke();
+  // 벤트 밸브(관 위) — 열리면 공기탱크의 공기가 빠져나간다
+  ctx.strokeStyle = '#64748b'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(vx, pipeY); ctx.lineTo(vx, ty - fs * 1.4); ctx.stroke();
+  const vy = ty - fs * 1.0;
+  ctx.fillStyle = ventOpen ? '#22c55e' : '#ef4444';
+  ctx.beginPath(); ctx.moveTo(vx - 7, vy - 6); ctx.lineTo(vx + 7, vy + 6); ctx.lineTo(vx + 7, vy - 6); ctx.lineTo(vx - 7, vy + 6); ctx.fill();
+  label(ventOpen ? '벤트 열림' : '벤트 닫힘', vx + 12, vy + fs * .35, fs - 2, ventOpen ? '#86efac' : '#fca5a5', 'left', 700);
+  if (ventOpen) { ctx.fillStyle = 'rgba(224,242,254,.9)'; for (let j = 0; j < 3; j++) { const ph = (t * 1.5 + j / 3) % 1; ctx.beginPath(); ctx.arc(vx + Math.sin(ph * 9) * 4, ty - fs * 1.4 - ph * fs * 1.2, 2.5, 0, 7); ctx.fill(); } }
+  // 물 구멍(아래) + 화살표
+  ctx.fillStyle = '#061a2e';
+  for (const hx of [.25, .5, .75]) ctx.fillRect(tx + tw * hx - 4, ty + th - 2, 8, 5);
+  const flowOut = blowing && air < 1, flowIn = ventOpen;
+  if (flowOut || flowIn) {
+    ctx.strokeStyle = flowOut ? '#7dd3fc' : '#38bdf8'; ctx.lineWidth = 2.5;
+    const ph = (t * 2) % 1;
+    for (const hx of [.25, .5, .75]) {
+      const ax = tx + tw * hx, y0 = ty + th + 3, len = fs * .75;
+      const ay = flowOut ? y0 + ph * 5 : y0 + len - ph * 5;
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax, ay + (flowOut ? len * .7 : -len * .7)); ctx.stroke();
+      const tip = flowOut ? ay + len * .7 : ay - len * .7, d = flowOut ? -4 : 4;
+      ctx.beginPath(); ctx.moveTo(ax - 4, tip + d); ctx.lineTo(ax, tip); ctx.lineTo(ax + 4, tip + d); ctx.stroke();
+    }
+  }
+  label(flowOut ? '물이 밖으로' : flowIn ? '물이 안으로' : '물 구멍', tx + tw / 2, ty + th + fs * 1.9, fs - 2, '#94a3b8', 'center', 700);
+}
+
+function drawForce(b, t, s) {
+  const fs = Math.max(10, Math.min(14, b.w / 11));
+  const depth = Math.max(0, s.y - 1.2);
+  const tight = b.h < 150; // 가로 폰: 수심·수압을 한 줄로
+  let top;
+  if (tight) {
+    label(`수심 ${depth.toFixed(0)}m · ${(1 + s.y / 10).toFixed(1)}기압`, b.x + b.w / 2, b.y + fs, fs, '#fff', 'center', 800);
+    top = b.y + fs * 1.6;
+  } else {
+    label(`수심 ${depth.toFixed(1)} m`, b.x + b.w / 2, b.y + fs + 2, fs + 2, '#fff', 'center', 900);
+    label(`수압 ${(1 + s.y / 10).toFixed(1)} 기압`, b.x + b.w / 2, b.y + fs * 2.4 + 2, fs - 1, '#93c5fd', 'center', 700);
+    top = b.y + fs * 3.3;
+  }
+  // 부력(위, 일정) · 무게(아래, 탱크 속 물만큼) · 알짜힘
+  const cx = b.x + b.w / 2, bot = b.y + b.h - fs * 1.6;
+  const mid = (top + bot) / 2, room = (bot - top) / 2 - 6;
+  if (room < 8) return;
+  const buoy = room * .7, wt = buoy * (1 + (.5 - s.air) * .8); // 공기 0 → 무게 1.4배, 공기 1 → 0.6배
+  const net = buoy - wt; // + = 위
+  ctx.fillStyle = '#f59e0b'; roundRectPx(cx - 16, mid - 6, 32, 12, 6); ctx.fill();
+  arrow(cx - 22, mid, cx - 22, mid - buoy, '#22d3ee', 4);
+  arrow(cx + 22, mid, cx + 22, mid + wt, '#fb923c', 4);
+  label('부력', cx - 26, mid - buoy / 2, fs - 2, '#67e8f9', 'right', 800);
+  label('무게', cx + 26, mid + wt / 2, fs - 2, '#fdba74', 'left', 800);
+  let txt, col;
+  if (Math.abs(s.air - .5) < .04) { txt = '중성 부력'; col = '#e2e8f0'; }
+  else if (net > 0) { txt = '부력 > 무게 → 떠오름'; col = '#67e8f9'; }
+  else { txt = '무게 > 부력 → 가라앉음'; col = '#fdba74'; }
+  wrap(txt, b.w, fs - 1).forEach((ln, i) => label(ln, cx, bot + fs * .6 + i * fs, fs - 1, col, 'center', 800));
+}
+
+function drawButton(b, on) {
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  const gr = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
+  if (on) { gr.addColorStop(0, '#fde047'); gr.addColorStop(1, '#f59e0b'); } else { gr.addColorStop(0, '#0ea5e9'); gr.addColorStop(1, '#1d4ed8'); }
+  ctx.fillStyle = gr; roundRectPx(b.x, b.y + (on ? 3 : 0), b.w, b.h - 3, 18); ctx.fill();
+  if (!on) { ctx.fillStyle = 'rgba(0,0,0,.3)'; roundRectPx(b.x, b.y + b.h - 6, b.w, 6, 3); ctx.fill(); }
+  const fs = Math.max(14, Math.min(24, b.h * .22, b.w / 7));
+  label(on ? '공기 주입 중!' : '누르고 있기', cx, cy + (on ? 3 : 0), fs, on ? '#422006' : '#fff', 'center', 900);
+  label(on ? '떼면 공기가 빠져요' : '= 공기 주입 · 스페이스바', cx, cy + fs + (on ? 3 : 0), Math.max(10, fs * .55), on ? '#713f12' : '#bfdbfe', 'center', 700);
+}
+
+function drawHud(s) {
+  const x0 = (L.land ? L.pw : 0) + 12, x1 = W - 90, y = 14;
+  // 진행 막대
+  const w = Math.max(60, Math.min(x1 - x0 - 190, 420));
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; roundRectPx(x0, y, w, 10, 5); ctx.fill();
+  ctx.fillStyle = '#22c55e'; roundRectPx(x0, y, Math.max(10, w * Math.min(1, s.x / s.length)), 10, 5); ctx.fill();
+  label(`${s.dist()} / ${s.length} m`, x0, y + 26, 13, '#0f172a', 'left', 800);
+  // 선체 · 진주 · 점수
+  let hx = x0 + w + 14;
+  for (let i = 0; i < C.HP; i++) {
+    ctx.fillStyle = i < s.hp ? '#f59e0b' : 'rgba(0,0,0,.25)';
+    roundRectPx(hx + i * 22, y - 2, 18, 12, 6); ctx.fill();
+  }
+  label(`진주 ${s.nPearls}`, hx, y + 26, 13, '#0f172a', 'left', 800);
+  label(`${s.score()}점`, hx + 70, y + 26, 15, '#0f172a', 'left', 900);
+}
+
+function arrow(x1, y1, x2, y2, col, w) {
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1), hs = w * 2.6;
+  ctx.beginPath(); ctx.moveTo(x2 + Math.cos(a) * hs * .6, y2 + Math.sin(a) * hs * .6);
+  ctx.lineTo(x2 + Math.cos(a + 2.4) * hs, y2 + Math.sin(a + 2.4) * hs);
+  ctx.lineTo(x2 + Math.cos(a - 2.4) * hs, y2 + Math.sin(a - 2.4) * hs); ctx.fill();
+}
+function roundRectPx(x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); roundRect(x, y, w, h, r); }
+function wrap(txt, maxW, size) {
+  ctx.font = `700 ${size}px system-ui`;
+  if (ctx.measureText(txt).width <= maxW) return [txt];
+  const i = txt.indexOf('→');
+  if (i > 0) return [txt.slice(0, i).trim(), txt.slice(i).trim()];
+  return [txt];
+}
+
+// 자동 입장(학번·이름 기억) — 새로고침해도 바로 로비로
+if (store.get('sub_name') && store.sget('sub_token') && store.sget('sub_joined')) { wantConn = true; connect(); }
+</script>
+</body>
+</html>
