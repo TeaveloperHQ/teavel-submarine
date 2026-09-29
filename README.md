@@ -59,3 +59,21 @@ SUB_NO_BROWSER=1 go run .           # 개발 실행(브라우저 자동 열기 �
 - 모든 상태 변경은 `Hub.run()` 단일 고루틴 안에서만 일어난다(락 없음). 서버 틱 10Hz(유령 5Hz, 교사 화면 5Hz).
 - 학생 식별: `sessionStorage` 토큰 — 새로고침하면 같은 학생. 브라우저를 닫았다 와도 같은 학번·이름이면 그 학생으로 복귀.
   주행 중 와이파이가 끊겨도 화면의 주행은 계속되고, 끝난 기록은 다시 연결되면 보낸다.
+
+## 아이콘
+
+`branding/` — teaveloper 공용 규격(1024 캔버스 · 800 라운드 사각형 rx 184 · 공식 그라데이션 · 흰 죽방). vector-soccer 와 같은 틀.
+간단한 흰 잠수함 한 척(잠망경 포함), 선체 가운데 죽방 엠블럼(배경색으로 파냄). 그림이 단순해 작은 크기(16·32·48px)도 같은 그림을 쓴다.
+
+```bash
+cd branding && python gen.py         # icon.svg / icon-small.svg 다시 만들기
+node render.js                       # PNG(1024·512·256) + app.ico(256·128·64·48·32·16) — 헤드리스 크롬 사용
+cd .. && rsrc -ico branding/app.ico -arch amd64 -o rsrc_windows_amd64.syso   # exe 아이콘(윈도우 빌드 시 자동 링크)
+cp branding/icon-small.svg assets/favicon.svg && cp branding/icon.svg assets/icon.svg   # 파비콘 · 입장 화면 로고
+```
+
+`rsrc` 는 `go install github.com/akavel/rsrc@latest`. magick 이 있으면 vector-soccer README 의 명령으로 대신 만들어도 된다.
+
+## 라이선스
+
+MIT — [LICENSE](LICENSE) 참고.
