@@ -120,7 +120,7 @@ func (s *Sim) Step(pressed bool) {
 		}
 	}
 
-	// ② 알짜힘 = 무게 − 부력. 공기 0.5 일 때 중성 부력.
+	// ② 알짜힘(아래 +) = 중력 − 부력. 중력은 일정, 부력은 공기탱크가 밀어낸 물의 부피(공기 비율)에 비례. 공기 0.5 일 때 중성 부력.
 	acc := float64(simG*(1-float64(2*s.Air))) - float64(simDrag*s.VY)
 	s.VY = s.VY + float64(acc*simDT)
 	s.Y = s.Y + float64(s.VY*simDT)

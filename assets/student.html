@@ -85,8 +85,33 @@
   .howto { font-size: 14px; line-height: 1.65; color: var(--mut); }
   .howto b { color: var(--fg); }
   .howto .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
-  .howto .two div { border-radius: 12px; padding: 10px; background: var(--hover); }
-  .howto .two svg { width: 100%; height: 88px; display: block; }
+  .howto .two > div { border-radius: 12px; padding: 10px; background: var(--hover); }
+  .howto .two svg { width: 100%; height: auto; display: block; margin: 6px 0 8px; }
+  .hw-tag { display: inline-block; font-size: 13px; font-weight: 900; padding: 3px 10px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; }
+  .hw-tag.on { background: #fef3c7; color: #b45309; }
+  :root[data-theme="dark"] .hw-tag { background: #1e3a8a; color: #bfdbfe; }
+  :root[data-theme="dark"] .hw-tag.on { background: #422006; color: #fcd34d; }
+  /* 조종 방법 그림: 공기탱크는 목(위 가운데)에 매달려 부풀고 줄어든다 */
+  .hw-inflate, .hw-deflate { transform-box: fill-box; transform-origin: 50% 0; }
+  .hw-inflate { animation: hwInflate 2.6s ease-in-out infinite; }
+  .hw-deflate { animation: hwDeflate 2.6s ease-in-out infinite; }
+  @keyframes hwInflate { 0% { transform: scale(.38); } 65%, 100% { transform: scale(1); } }
+  @keyframes hwDeflate { 0% { transform: scale(1); } 65%, 100% { transform: scale(.36); } }
+  .hw-flow { stroke-dasharray: 4 4; animation: hwFlow .5s linear infinite; }
+  @keyframes hwFlow { to { stroke-dashoffset: -8; } }
+  .hw-bub { animation: hwBub 1.5s linear infinite; }
+  .hw-bub.d2 { animation-delay: .5s; } .hw-bub.d3 { animation-delay: 1s; }
+  @keyframes hwBub { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-10px); opacity: 0; } }
+  .hw-down { animation: hwDown 1s linear infinite; } .hw-up { animation: hwUp 1s linear infinite; }
+  @keyframes hwDown { from { transform: translateY(-2px); opacity: 1; } to { transform: translateY(4px); opacity: .3; } }
+  @keyframes hwUp { from { transform: translateY(2px); opacity: 1; } to { transform: translateY(-4px); opacity: .3; } }
+  .hw-rise { animation: hwRise 2.6s ease-in-out infinite; } .hw-sink { animation: hwSink 2.6s ease-in-out infinite; }
+  @keyframes hwRise { 0% { transform: translateY(14px); } 100% { transform: translateY(-4px); } }
+  @keyframes hwSink { 0% { transform: translateY(-4px); } 100% { transform: translateY(14px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .hw-inflate, .hw-deflate, .hw-flow, .hw-bub, .hw-down, .hw-up, .hw-rise, .hw-sink { animation: none; }
+    .hw-deflate { transform: scale(.36); }
+  }
 
   /* 토스트 */
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 80; max-width: 92vw;
@@ -150,15 +175,91 @@
 
   <div class="card howto">
     <h2>조종 방법</h2>
-    잠수함 앞뒤의 <b>밸러스트 탱크</b> 안에 <b>공기탱크</b>가 있어요. 공기탱크가 부풀면 물이 밀려 나가 가벼워지고, 줄어들면 물이 들어와 무거워져요.
+    잠수함 앞뒤의 <b>밸러스트 탱크</b> 안에 <b>공기탱크</b>가 있어요. 잠수함의 무게(중력)는 그대로예요. 공기탱크가 부풀면 물을 더 많이 밀어내 <b>부력이 커지고</b>, 줄어들면 <b>부력이 작아져요</b>.
     <div class="two">
       <div>
-        <svg viewBox="0 0 120 88"><rect x="30" y="10" width="60" height="60" rx="10" fill="#0ea5e9" stroke="#0369a1" stroke-width="3"/><rect x="35" y="16" width="50" height="44" rx="14" fill="#fffbeb" stroke="#f97316" stroke-width="2.5"/><rect x="57" y="10" width="6" height="7" fill="#f97316"/><path d="M8 20 H30" stroke="#f59e0b" stroke-width="4"/><path d="M14 14 l8 6 -8 6" fill="none" stroke="#f59e0b" stroke-width="3"/><path d="M50 72 v12 M60 72 v12 M70 72 v12" stroke="#0ea5e9" stroke-width="3"/><path d="M46 80 l4 5 4-5 M56 80 l4 5 4-5 M66 80 l4 5 4-5" fill="none" stroke="#0ea5e9" stroke-width="2.5"/><text x="60" y="42" text-anchor="middle" font-size="11" font-weight="800" fill="#c2410c">공기탱크</text></svg>
-        <b>누르고 있으면</b><br>공기탱크가 풍선처럼 부풀어 물을 밀어내요 → 가벼워져 <b>뜬다</b>
+        <div class="hw-tag on">누르고 있으면</div>
+        <svg viewBox="0 0 160 140" role="img" aria-label="누르면 공기탱크가 부풀어 물을 밀어내고 잠수함이 뜬다">
+          <defs>
+            <linearGradient id="hwAs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c8fc2"/><stop offset="1" stop-color="#062a4a"/></linearGradient>
+            <linearGradient id="hwAw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient>
+          </defs>
+          <rect width="160" height="140" rx="12" fill="url(#hwAs)"/>
+          <path d="M0 6 Q10 3 20 6 T40 6 T60 6 T80 6 T100 6 T120 6 T140 6 T160 6" fill="none" stroke="#e0f2fe" stroke-width="1.5" opacity=".6"/>
+          <rect x="10" y="44" width="16" height="48" rx="8" fill="#94a3b8" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="18" y="104" text-anchor="middle" font-size="8" font-weight="700" fill="#cbd5e1">고압</text>
+          <text x="18" y="114" text-anchor="middle" font-size="8" font-weight="700" fill="#cbd5e1">공기</text>
+          <path d="M18 44 V24 H70 V34" fill="none" stroke="#64748b" stroke-width="4"/>
+          <path class="hw-flow" d="M18 44 V24 H70 V34" fill="none" stroke="#fde047" stroke-width="2"/>
+          <path d="M70 24 V12" stroke="#64748b" stroke-width="4"/>
+          <path d="M64 13 L76 19 V13 L64 19 Z" fill="#ef4444"/>
+          <text x="80" y="19" font-size="8" font-weight="800" fill="#fca5a5">벤트 닫힘</text>
+          
+          <rect x="44" y="34" width="52" height="68" rx="10" fill="url(#hwAw)"/>
+          <g class="hw-inflate">
+            <rect x="48" y="38" width="44" height="60" rx="14" fill="#fffbeb" stroke="#f97316" stroke-width="2"/>
+            <ellipse cx="58" cy="50" rx="3" ry="5" fill="#fff" transform="rotate(-25 58 50)"/>
+            <text x="70" y="66" text-anchor="middle" font-size="9" font-weight="800" fill="#c2410c">공기</text>
+            <text x="70" y="77" text-anchor="middle" font-size="9" font-weight="800" fill="#c2410c">탱크</text>
+          </g>
+          <rect x="67" y="33" width="6" height="6" fill="#f97316"/>
+          <rect x="44" y="34" width="52" height="68" rx="10" fill="none" stroke="#cbd5e1" stroke-width="2.5"/>
+          <rect x="54" y="100" width="6" height="4" fill="#061a2e"/><rect x="67" y="100" width="6" height="4" fill="#061a2e"/><rect x="80" y="100" width="6" height="4" fill="#061a2e"/>
+          <g class="hw-down" fill="none" stroke="#7dd3fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M57 107 v10 m-3.5 -3.5 l3.5 3.5 3.5 -3.5 M70 107 v10 m-3.5 -3.5 l3.5 3.5 3.5 -3.5 M83 107 v10 m-3.5 -3.5 l3.5 3.5 3.5 -3.5"/>
+          </g>
+          <text x="70" y="132" text-anchor="middle" font-size="8" font-weight="700" fill="#bae6fd">물이 밖으로</text>
+          <g class="hw-rise">
+            <rect x="120" y="36" width="7" height="6" rx="1.5" fill="#f59e0b"/>
+            <rect x="108" y="41" width="34" height="12" rx="6" fill="#fbbf24" stroke="#78350f" stroke-width="1.2"/>
+            <circle cx="120" cy="47" r="1.8" fill="#78350f"/><circle cx="128" cy="47" r="1.8" fill="#78350f"/>
+          </g>
+          <path d="M125 108 V68 m-7 8 l7 -8 7 8" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="126" y="124" text-anchor="middle" font-size="11" font-weight="900" fill="#67e8f9">뜬다!</text>
+        </svg>
+        고압 공기가 들어가 공기탱크가 <b>풍선처럼 부풀어요</b> → 물을 밀어내 부력이 커져서 <b>뜬다</b>
       </div>
       <div>
-        <svg viewBox="0 0 120 88"><rect x="30" y="10" width="60" height="60" rx="10" fill="#0ea5e9" stroke="#0369a1" stroke-width="3"/><rect x="51" y="16" width="18" height="12" rx="6" fill="#fffbeb" stroke="#f97316" stroke-width="2"/><rect x="57" y="10" width="6" height="7" fill="#f97316"/><path d="M60 10 V2" stroke="#16a34a" stroke-width="4"/><circle cx="56" cy="6" r="3" fill="#bae6fd"/><circle cx="66" cy="3" r="2" fill="#bae6fd"/><path d="M50 84 v-12 M60 84 v-12 M70 84 v-12" stroke="#0ea5e9" stroke-width="3"/><path d="M46 76 l4-5 4 5 M56 76 l4-5 4 5 M66 76 l4-5 4 5" fill="none" stroke="#0ea5e9" stroke-width="2.5"/><text x="60" y="50" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">물</text></svg>
-        <b>떼면</b><br>공기탱크의 공기가 빠지고 <b>수압</b>으로 물이 들어와요 → 무거워져 <b>가라앉는다</b>
+        <div class="hw-tag">떼면</div>
+        <svg viewBox="0 0 160 140" role="img" aria-label="떼면 공기탱크의 공기가 빠지고 물이 들어와 잠수함이 가라앉는다">
+          <defs>
+            <linearGradient id="hwBs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c8fc2"/><stop offset="1" stop-color="#062a4a"/></linearGradient>
+            <linearGradient id="hwBw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient>
+          </defs>
+          <rect width="160" height="140" rx="12" fill="url(#hwBs)"/>
+          <path d="M0 6 Q10 3 20 6 T40 6 T60 6 T80 6 T100 6 T120 6 T140 6 T160 6" fill="none" stroke="#e0f2fe" stroke-width="1.5" opacity=".6"/>
+          <rect x="10" y="44" width="16" height="48" rx="8" fill="#94a3b8" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="18" y="104" text-anchor="middle" font-size="8" font-weight="700" fill="#cbd5e1">고압</text>
+          <text x="18" y="114" text-anchor="middle" font-size="8" font-weight="700" fill="#cbd5e1">공기</text>
+          <path d="M18 44 V24 H70 V34" fill="none" stroke="#64748b" stroke-width="4"/>
+          
+          <path d="M70 24 V12" stroke="#64748b" stroke-width="4"/>
+          <path d="M64 13 L76 19 V13 L64 19 Z" fill="#22c55e"/>
+          <text x="80" y="19" font-size="8" font-weight="800" fill="#86efac">벤트 열림</text>
+          <circle class="hw-bub" cx="70" cy="10" r="2.2" fill="#e0f2fe"/><circle class="hw-bub d2" cx="67" cy="10" r="1.6" fill="#e0f2fe"/><circle class="hw-bub d3" cx="73" cy="10" r="1.8" fill="#e0f2fe"/>
+          <rect x="44" y="34" width="52" height="68" rx="10" fill="url(#hwBw)"/>
+          <g class="hw-deflate">
+            <rect x="48" y="38" width="44" height="60" rx="14" fill="#fffbeb" stroke="#f97316" stroke-width="2"/>
+            <ellipse cx="58" cy="50" rx="3" ry="5" fill="#fff" transform="rotate(-25 58 50)"/>
+            <text x="70" y="66" text-anchor="middle" font-size="9" font-weight="800" fill="#c2410c">공기</text>
+            <text x="70" y="77" text-anchor="middle" font-size="9" font-weight="800" fill="#c2410c">탱크</text>
+          </g>
+          <rect x="67" y="33" width="6" height="6" fill="#f97316"/>
+          <rect x="44" y="34" width="52" height="68" rx="10" fill="none" stroke="#cbd5e1" stroke-width="2.5"/>
+          <rect x="54" y="100" width="6" height="4" fill="#061a2e"/><rect x="67" y="100" width="6" height="4" fill="#061a2e"/><rect x="80" y="100" width="6" height="4" fill="#061a2e"/>
+          <g class="hw-up" fill="none" stroke="#7dd3fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M57 119 v-10 m-3.5 3.5 l3.5 -3.5 3.5 3.5 M70 119 v-10 m-3.5 3.5 l3.5 -3.5 3.5 3.5 M83 119 v-10 m-3.5 3.5 l3.5 -3.5 3.5 3.5"/>
+          </g>
+          <text x="70" y="132" text-anchor="middle" font-size="8" font-weight="700" fill="#bae6fd">물이 안으로</text>
+          <g class="hw-sink">
+            <rect x="120" y="36" width="7" height="6" rx="1.5" fill="#f59e0b"/>
+            <rect x="108" y="41" width="34" height="12" rx="6" fill="#fbbf24" stroke="#78350f" stroke-width="1.2"/>
+            <circle cx="120" cy="47" r="1.8" fill="#78350f"/><circle cx="128" cy="47" r="1.8" fill="#78350f"/>
+          </g>
+          <path d="M125 64 V104 m-7 -8 l7 8 7 -8" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="126" y="124" text-anchor="middle" font-size="9.5" font-weight="900" fill="#fdba74">가라앉는다</text>
+        </svg>
+        벤트가 열려 공기가 빠지고 <b>수압</b>으로 물이 들어와요 → 부력이 작아져서 <b>가라앉는다</b>
       </div>
     </div>
     화면 아무 곳이나 누르거나 <b>스페이스바</b>를 누르세요. 깊이 내려갈수록 수압이 커서 물이 더 빨리 들어와요.<br>
@@ -935,21 +1036,21 @@ function drawForce(b, t, s) {
     label(`수압 ${(1 + s.y / 10).toFixed(1)} 기압`, b.x + b.w / 2, b.y + fs * 2.4 + 2, fs - 1, '#93c5fd', 'center', 700);
     top = b.y + fs * 3.3;
   }
-  // 부력(위, 일정) · 무게(아래, 탱크 속 물만큼) · 알짜힘
+  // 중력(아래, 일정 — 잠수함 질량은 그대로) · 부력(위, 공기탱크가 밀어낸 물의 부피만큼) · 알짜힘
   const cx = b.x + b.w / 2, bot = b.y + b.h - fs * 1.6;
   const mid = (top + bot) / 2, room = (bot - top) / 2 - 6;
   if (room < 8) return;
-  const buoy = room * .7, wt = buoy * (1 + (.5 - s.air) * .8); // 공기 0 → 무게 1.4배, 공기 1 → 0.6배
+  const wt = room * .7, buoy = wt * (1 + (s.air - .5) * .8); // 공기 0 → 부력 0.6배, 공기 1 → 1.4배
   const net = buoy - wt; // + = 위
   ctx.fillStyle = '#f59e0b'; roundRectPx(cx - 16, mid - 6, 32, 12, 6); ctx.fill();
   arrow(cx - 22, mid, cx - 22, mid - buoy, '#22d3ee', 4);
   arrow(cx + 22, mid, cx + 22, mid + wt, '#fb923c', 4);
   label('부력', cx - 26, mid - buoy / 2, fs - 2, '#67e8f9', 'right', 800);
-  label('무게', cx + 26, mid + wt / 2, fs - 2, '#fdba74', 'left', 800);
+  label('중력', cx + 26, mid + wt / 2, fs - 2, '#fdba74', 'left', 800);
   let txt, col;
   if (Math.abs(s.air - .5) < .04) { txt = '중성 부력'; col = '#e2e8f0'; }
-  else if (net > 0) { txt = '부력 > 무게 → 떠오름'; col = '#67e8f9'; }
-  else { txt = '무게 > 부력 → 가라앉음'; col = '#fdba74'; }
+  else if (net > 0) { txt = '부력 > 중력 → 떠오름'; col = '#67e8f9'; }
+  else { txt = '부력 < 중력 → 가라앉음'; col = '#fdba74'; }
   wrap(txt, b.w, fs - 1).forEach((ln, i) => label(ln, cx, bot + fs * .6 + i * fs, fs - 1, col, 'center', 800));
 }
 
