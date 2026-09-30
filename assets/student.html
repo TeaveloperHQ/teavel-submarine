@@ -353,10 +353,10 @@ function onMsg(m) {
     case 'course': {
       const old = course;
       course = m.course;
-      if (game && game.running && (!course || course.id !== game.courseId)) {
-        abortGame('선생님이 새 코스를 열었어요. 새 코스로 다시 출발하세요.');
+      if (game && !game.finished && (!course || course.id !== game.courseId)) {
+        abortGame(course ? '선생님이 새 코스를 열었어요. 새 코스로 다시 출발하세요.' : '선생님이 코스를 내렸어요. 잠시 기다려 주세요.');
       }
-      if (old && course && old.id !== course.id && !game) toast('새 코스가 열렸어요: ' + course.name);
+      if (course && (!old || old.id !== course.id) && !game && me) toast('코스가 열렸어요: ' + course.name);
       if (old && course && old.id === course.id && old.open !== course.open && !game)
         toast(course.open ? '기록이 시작됐어요! 공식 도전을 해 보세요.' : '기록이 마감됐어요.');
       renderLobby();
@@ -383,7 +383,7 @@ function onMsg(m) {
 function renderLobby() {
   const cc = $('#courseCard');
   if (!course) {
-    cc.innerHTML = `<div class="cn">코스 준비 중</div><div class="note">선생님이 코스를 만들 때까지 기다려 주세요.</div>`;
+    cc.innerHTML = `<div class="cn">코스 준비 중</div><div class="note">선생님이 코스를 올릴 때까지 기다려 주세요.<br>그동안 아래 <b>조종 방법</b>을 읽어 보세요.</div>`;
     $('#board').innerHTML = '<div class="empty">아직 기록이 없어요.</div>'; $('#boardTotal').textContent = '';
     return;
   }

@@ -57,8 +57,10 @@ func main() {
 
 	hub := newHub()
 	if cf := loadLatestCourse(); cf != nil {
-		hub.setCourse(cf)
-		log.Printf("이어서 진행: %s (%s, 기록 %d개)", cf.Course.Name, cf.Date, len(cf.Runs))
+		// 학생 화면에는 내려 둔 채로 연다 — 교사가 교사 화면에서 '코스 올리기'를 눌러야 학생이 달릴 수 있다
+		cf.Course.Open = false
+		hub.setCourse(cf, false)
+		log.Printf("이어서 진행(코스 내려 둠 — 교사 화면에서 올리세요): %s (%s, 기록 %d개)", cf.Course.Name, cf.Date, len(cf.Runs))
 	}
 	go hub.run()
 

@@ -181,3 +181,63 @@ func TestBoardTies(t *testing.T) {
 		t.Fatalf("순위 이상: %+v", b)
 	}
 }
+
+func TestHideCourse(t *testing.T) {
+	th := newTestHub(t)
+	th.onHostMessage(msgIn{T: "setOpen", Open: true})
+	a := th.join("1", "가")
+	th.msg(a, map[string]any{"t": "start"})
+	g := last(a, "go")
+	if g == nil {
+		t.Fatal("출발 안 됨")
+	}
+
+	// 내리기: 달리던 주행은 무효, 기록도 닫힘, 학생에게 코스가 사라짐
+	th.onHostMessage(msgIn{T: "setShown", Shown: false})
+	if th.course.Open || th.shown || len(th.runs) != 0 {
+		t.Fatalf("내리기 후 상태 이상: open=%v shown=%v runs=%d", th.course.Open, th.shown, len(th.runs))
+	}
+	th.onTick()
+	if m := last(a, "course"); m == nil || m["course"] != nil {
+		t.Fatalf("학생에게 코스가 그대로 보임: %v", m)
+	}
+	th.clock = th.clock.Add(2 * time.Minute)
+	th.msg(a, map[string]any{"t": "end", "run": g["run"], "toggles": []int{}})
+	if r := last(a, "result"); r == nil || r["void"] != true {
+		t.Fatalf("내린 뒤 끝난 주행이 기록됨: %v", r)
+	}
+	for _, practice := range []bool{false, true} {
+		th.msg(a, map[string]any{"t": "start", "practice": practice})
+		if last(a, "go") != nil {
+			t.Fatalf("내려 둔 코스로 출발됨(연습=%v)", practice)
+		}
+	}
+	th.onHostMessage(msgIn{T: "setOpen", Open: true})
+	if th.course.Open {
+		t.Fatal("내려 둔 코스에 기록 시작이 됨")
+	}
+
+	// 올리기: 연습 가능
+	th.onHostMessage(msgIn{T: "setShown", Shown: true})
+	th.onTick()
+	if m := last(a, "course"); m == nil || m["course"] == nil {
+		t.Fatal("올렸는데 학생에게 코스가 안 옴")
+	}
+	th.msg(a, map[string]any{"t": "start", "practice": true})
+	if last(a, "go") == nil {
+		t.Fatal("올린 뒤 연습이 안 됨")
+	}
+}
+
+func TestRestoreStartsHidden(t *testing.T) {
+	h := newHub()
+	h.save = func(*CourseFile) {}
+	cf := &CourseFile{Course: Course{ID: "c1", Name: "지난 코스", Seed: 7, Length: 600, Diff: "easy", Open: true}}
+	cf.Course.Open = false // main.go 와 같이: 다시 켜면 기록은 닫고
+	h.setCourse(cf, false) // 내려 둔 채로
+	c := &client{hub: h, send: make(chan []byte, 64), token: "t", name: "가"}
+	h.onRegister(c)
+	if m := last(c, "course"); m == nil || m["course"] != nil {
+		t.Fatalf("서버를 다시 켜자마자 학생에게 코스가 보임: %v", m)
+	}
+}

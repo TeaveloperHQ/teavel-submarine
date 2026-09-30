@@ -110,6 +110,7 @@ type Hub struct {
 	runs    map[string]*Run
 
 	course  *Course
+	shown   bool        // 학생 화면에 코스를 올려 둠. 내리면 학생은 연습도 못 하고 "코스 준비 중"만 본다
 	cfile   *CourseFile // 저장되는 기록(course 메타 + 주행 기록 + 도전 횟수)
 	board   []BoardRow  // records 가 바뀔 때만 다시 계산
 	boardOK bool
@@ -135,22 +136,41 @@ func newHub() *Hub {
 }
 
 // setCourse 는 코스를 바꾼다(새로 만들기 또는 서버 시작 시 복원). 진행 중이던 주행은 모두 무효.
-func (h *Hub) setCourse(cf *CourseFile) {
+// shown=false 면 내려 둔 채로 둔다 — 서버를 켜자마자 학생들이 달리기 시작하지 않게(교사가 올릴 때까지).
+func (h *Hub) setCourse(cf *CourseFile, shown bool) {
 	c := cf.Course
 	c.build()
 	h.course = &c
 	h.cfile = cf
+	h.shown = shown
 	currentCourse.Store(cf.Date + "/" + cf.File)
 	if h.cfile.Tries == nil {
 		h.cfile.Tries = map[string]int{}
 	}
+	h.cancelRuns()
+	h.publishState()
+	h.boardOK = false
+	h.courseDirty = true
+	h.lobbyDirty = true
+}
+
+// publishState 는 기록 탭(API)이 읽는 현재 코스 상태를 갱신한다.
+func (h *Hub) publishState() {
+	st := "down"
+	if h.shown {
+		st = "practice"
+		if h.course != nil && h.course.Open {
+			st = "open"
+		}
+	}
+	currentState.Store(st)
+}
+
+func (h *Hub) cancelRuns() {
 	for id, r := range h.runs {
 		r.p.run = nil
 		delete(h.runs, id)
 	}
-	h.boardOK = false
-	h.courseDirty = true
-	h.lobbyDirty = true
 }
 
 func (h *Hub) run() {
@@ -274,6 +294,7 @@ type msgIn struct {
 	Diff   string `json:"diff"`
 	Limit  int    `json:"limit"`
 	Open   bool   `json:"open"`
+	Shown  bool   `json:"shown"`
 }
 
 func (h *Hub) onMessage(in inMsg) {
@@ -308,8 +329,8 @@ func (h *Hub) onMessage(in inMsg) {
 }
 
 func (h *Hub) startRun(p *Player, practice bool) {
-	if h.course == nil {
-		h.sendErr(p, "아직 코스가 없어요. 선생님을 기다려 주세요.")
+	if h.course == nil || !h.shown {
+		h.sendErr(p, "아직 코스가 없어요. 선생님이 코스를 올릴 때까지 기다려 주세요.")
 		return
 	}
 	if !practice {
@@ -403,11 +424,27 @@ func (h *Hub) onHostMessage(m msgIn) {
 			CreatedAt: now.Format(time.RFC3339), Limit: m.Limit}, Tries: map[string]int{}, Runs: []RunRecord{}}
 		cf.Date = now.Format("2006-01-02")
 		cf.File = now.Format("150405") + "-" + cf.Course.ID + ".json"
-		h.setCourse(cf)
+		h.setCourse(cf, true)
 		h.save(h.cfile)
 		log.Printf("새 코스: %s (%dm · %s · 도전 %d회)", name, m.Length, diffKo[m.Diff], m.Limit)
+	case "setShown":
+		if h.course == nil || h.shown == m.Shown {
+			return
+		}
+		h.shown = m.Shown
+		if !m.Shown { // 내리기: 기록도 닫고, 달리던 주행은 모두 멈춘다(학생 화면이 로비로 돌아감)
+			h.cancelRuns()
+			if h.course.Open {
+				h.course.Open = false
+				h.cfile.Course.Open = false
+				h.save(h.cfile)
+			}
+		}
+		log.Printf("코스 %s: %s", map[bool]string{true: "올림", false: "내림"}[m.Shown], h.course.Name)
+		h.courseDirty = true
+		h.lobbyDirty = true
 	case "setOpen":
-		if h.course == nil {
+		if h.course == nil || (m.Open && !h.shown) {
 			return
 		}
 		h.course.Open = m.Open
@@ -523,6 +560,7 @@ func (h *Hub) onTick() {
 
 	if h.courseDirty {
 		h.courseDirty = false
+		h.publishState()
 		b := h.courseMsg()
 		for _, p := range h.players {
 			h.sendP2(p, b)
@@ -592,11 +630,11 @@ func (h *Hub) broadcastGhosts(now time.Time) {
 func (h *Hub) courseMeta() map[string]any {
 	c := h.course
 	return map[string]any{"id": c.ID, "name": c.Name, "length": c.Length, "diff": c.Diff,
-		"open": c.Open, "limit": c.Limit, "createdAt": c.CreatedAt}
+		"open": c.Open, "limit": c.Limit, "createdAt": c.CreatedAt, "shown": h.shown}
 }
 
 func (h *Hub) courseMsgAs(t string) []byte {
-	if h.course == nil {
+	if h.course == nil || (t == "course" && !h.shown) { // 학생에게는 내려 둔 코스를 보내지 않는다
 		return mustJSON(map[string]any{"t": t, "course": nil})
 	}
 	m := h.courseMeta()
@@ -609,7 +647,7 @@ func (h *Hub) hostCourseMsg() []byte { return h.courseMsgAs("hcourse") }
 
 func (h *Hub) statusMsg(p *Player) []byte {
 	m := map[string]any{"t": "status"}
-	if h.course == nil {
+	if h.course == nil || !h.shown {
 		return mustJSON(m)
 	}
 	board := h.leaderboard()

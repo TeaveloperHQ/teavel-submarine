@@ -61,7 +61,10 @@
   .ctop .cn { font-size: 22px; font-weight: 900; }
   .ctop .meta { color: var(--mut); font-size: 14px; }
   .badge { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--hover); color: var(--mut); }
-  .badge.open { background: #dcfce7; color: #166534; } .badge.prac { background: #fef3c7; color: #92400e; }
+  .badge.open { background: #dcfce7; color: #166534; }
+  .curnote { font-size: 13px; color: var(--mut); margin: -2px 0 12px; line-height: 1.6; }
+  .badge.down { background: #fee2e2; color: #991b1b; }
+  :root[data-theme="dark"] .badge.down { background: #450a0a; color: #fca5a5; } .badge.prac { background: #fef3c7; color: #92400e; }
   :root[data-theme="dark"] .badge.open { background: #064e3b; color: #6ee7b7; }
   :root[data-theme="dark"] .badge.prac { background: #422006; color: #fcd34d; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
@@ -268,23 +271,32 @@ function renderCourse() {
   cc.innerHTML = `
     <div class="ctop"><span class="cn">${esc(c.name)}</span>
       <span class="meta">${c.length} m · ${DIFF[c.diff]} · 한 번에 약 ${dur(c.length / 10)}</span>
-      ${c.open ? '<span class="badge open">기록 중</span>' : '<span class="badge prac">연습만 가능</span>'}
+      ${!c.shown ? '<span class="badge down">내려 둠 · 학생 화면에 안 보임</span>' : c.open ? '<span class="badge open">기록 중</span>' : '<span class="badge prac">연습만 가능</span>'}
       <span class="spring"></span>
-      ${c.open ? '<button class="btn stop" id="openBtn">기록 마감</button>' : '<button class="btn go" id="openBtn">기록 시작</button>'}</div>
+      ${!c.shown ? '<button class="btn go" id="showBtn">코스 올리기</button>'
+        : c.open ? '<button class="btn stop" id="openBtn">기록 마감</button>' : '<button class="btn go" id="openBtn">기록 시작</button>'}</div>
     <div class="row"><label>공식 도전 횟수</label>
       <select id="limSel">${lims.map(l => `<option value="${l}" ${l === c.limit ? 'selected' : ''}>${l ? l + '회' : '무제한'}</option>`).join('')}</select>
-      <span class="spring"></span><button class="btn ghost" id="newBtn">새 코스 만들기</button></div>
+      <span class="spring"></span>${c.shown ? '<button class="btn ghost" id="hideBtn">코스 내리기</button>' : ''}<button class="btn ghost" id="newBtn">새 코스 만들기</button></div>
     <canvas id="strip"></canvas>
-    <div class="hint">${c.open ? '학생들이 공식 도전 중입니다. 학생마다 <b>가장 높은 점수</b>가 순위에 올라갑니다. 마감하면 새 도전은 막히고, 달리던 주행은 끝까지 기록됩니다.'
+    <div class="hint">${!c.shown ? '코스를 <b>내려 두었습니다</b>. 학생 화면에는 "코스 준비 중"만 보이고 연습도 할 수 없습니다. 수업을 시작할 때 <b>코스 올리기</b>를 누르세요.'
+      : c.open ? '학생들이 공식 도전 중입니다. 학생마다 <b>가장 높은 점수</b>가 순위에 올라갑니다. 마감하면 새 도전은 막히고, 달리던 주행은 끝까지 기록됩니다.'
       : '지금은 <b>연습 주행</b>만 됩니다(기록 안 됨). 학생들이 조작에 익숙해지면 <b>기록 시작</b>을 누르세요.'}
       지도의 점은 달리는 학생(초록 = 공식, 주황 = 연습)입니다.</div>`;
-  $('#openBtn').onclick = () => {
+  if ($('#openBtn')) $('#openBtn').onclick = () => {
     if (c.open && !confirm('기록을 마감할까요? 더 이상 공식 도전을 시작할 수 없어요.')) return;
     send({ t: 'setOpen', open: !c.open });
   };
+  if ($('#showBtn')) $('#showBtn').onclick = () => send({ t: 'setShown', shown: true });
+  if ($('#hideBtn')) $('#hideBtn').onclick = () => {
+    const running = st.runs.length;
+    const warn = (c.open ? '기록도 마감됩니다. ' : '') + (running ? `달리고 있는 ${running}명의 주행이 멈춥니다(기록 안 됨). ` : '');
+    if (!confirm('코스를 내릴까요? 학생 화면에서 코스가 사라집니다. ' + warn + '기록은 그대로 남아요.')) return;
+    send({ t: 'setShown', shown: false });
+  };
   $('#limSel').onchange = e => send({ t: 'setLimit', limit: +e.target.value });
   $('#newBtn').onclick = openNew;
-  courseKey = c.id + c.open + c.limit + c.name;
+  courseKey = c.id + c.open + c.limit + c.name + c.shown;
 }
 let courseKey = '';
 
@@ -311,7 +323,7 @@ $('#ncOK').onclick = () => {
 // ── 진행 상황 ───────────────────────────────────────────────
 function renderLive() {
   const c = st.course;
-  const key = c ? c.id + c.open + c.limit + c.name : '';
+  const key = c ? c.id + c.open + c.limit + c.name + c.shown : '';
   if (key !== courseKey || !$('#courseCard').innerHTML) renderCourse();
   $('#sOnline').textContent = st.online;
   $('#sRun').textContent = st.runs.length;
@@ -380,7 +392,7 @@ function renderBig() {
   if (!st) return;
   const c = st.course;
   $('#bigTitle').textContent = c ? c.name : '순위';
-  $('#bigMeta').textContent = c ? `${c.length} m · ${DIFF[c.diff]} · ${c.open ? '기록 중' : '연습/마감'} · ${st.board.length}명 기록` : '';
+  $('#bigMeta').textContent = c ? `${c.length} m · ${DIFF[c.diff]} · ${!c.shown ? '내려 둠' : c.open ? '기록 중' : '연습/마감'} · ${st.board.length}명 기록` : '';
   const top = st.board.slice(0, 20);
   $('#bigGrid').innerHTML = top.length ? top.map(r => `<div class="it r${r.rank}"><span class="rk">${r.rank}</span><span class="nm">${esc(r.name)}</span>
     <span class="sc">${r.score}</span></div>`).join('') : '<div style="font-size:3vh;color:#93c5fd">아직 기록이 없어요</div>';
@@ -389,6 +401,9 @@ function renderBig() {
 
 // ── 기록 탭 ─────────────────────────────────────────────────
 let recSel = null;
+// 기록 탭에서 현재 코스 표시 — 진행 탭 코스 카드와 같은 말·같은 색
+const curBadge = st => ({ open: '<span class="badge open">현재 코스 · 기록 중</span>', practice: '<span class="badge prac">현재 코스 · 연습 중</span>' }[st]
+  || '<span class="badge down">현재 코스 · 내려 둠</span>');
 async function loadRecs() {
   const date = $('#dateSel').value;
   const r = await (await fetch('/api/courses' + (date ? '?date=' + date : ''))).json();
@@ -399,13 +414,13 @@ async function loadRecs() {
   $('#csvAllAll').href = '/api/results.csv?kind=all' + q;
   $('#recList').innerHTML = r.courses.length ? r.courses.map(c => `
     <div class="rec ${recSel === c.date + '/' + c.file ? 'on' : ''}" data-k="${c.date}/${c.file}">
-      <div style="flex:1;min-width:0"><div class="nm">${esc(c.name)} ${r.current === c.date + '/' + c.file ? '<span class="badge open">진행 중</span>' : ''}</div>
+      <div style="flex:1;min-width:0"><div class="nm">${esc(c.name)} ${r.current === c.date + '/' + c.file ? curBadge(r.currentState) : ''}</div>
       <div class="meta">${c.date} ${c.createdAt.slice(11, 16)} · ${c.length} m · ${DIFF[c.diff]} · ${c.players}명 · 주행 ${c.runs}회${c.players ? ` · 1위 ${esc(c.topName)} ${c.top}점` : ''}</div></div>
     </div>`).join('') : '<div class="empty">저장된 코스가 없어요.</div>';
-  document.querySelectorAll('.rec').forEach(el => el.onclick = () => { recSel = el.dataset.k; loadRecs(); showRec(recSel, r.current); });
+  document.querySelectorAll('.rec').forEach(el => el.onclick = () => { recSel = el.dataset.k; loadRecs(); showRec(recSel, r.current, r.currentState); });
 }
 $('#dateSel').onchange = loadRecs;
-async function showRec(k, current) {
+async function showRec(k, current, state) {
   const [date, file] = k.split('/');
   const r = await fetch(`/api/courses/${date}/${file}`);
   if (!r.ok) { $('#recView').innerHTML = '<div class="empty">불러오지 못했어요.</div>'; return; }
@@ -415,6 +430,9 @@ async function showRec(k, current) {
     <div class="row" style="margin:0 0 12px"><a class="btn ghost" href="/api/results.csv?kind=best&${q}">최고 기록 CSV</a>
       <a class="btn ghost" href="/api/results.csv?kind=all&${q}">모든 주행 CSV</a><span class="spring"></span>
       ${current === k ? '' : '<button class="btn danger" id="delBtn">이 코스 기록 삭제</button>'}</div>
+    ${current === k ? `<div class="curnote">${curBadge(state)} ${{ open: '학생들이 지금 공식 도전 중입니다. 순위가 계속 바뀔 수 있어요.',
+        practice: '학생 화면에 올라가 있고 연습만 됩니다. 기록은 진행 탭에서 <b>기록 시작</b>.' }[state]
+        || '학생 화면에서 내려 둔 코스입니다. 진행 탭에서 <b>코스 올리기</b>를 누르면 이 기록에 이어서 달립니다.'}</div>` : ''}
     <div class="scroll">${boardTable(d.board)}</div>`;
   const db = $('#delBtn');
   if (db) db.onclick = async () => {

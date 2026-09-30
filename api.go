@@ -10,8 +10,9 @@ import (
 // 교사 전용 API. 학생도 같은 AP 에서 서버에 닿으므로 기록 열람·삭제는
 // 반드시 교사 PC 본인(localhost)에서만 허용한다(classroom-quiz 의 localOnly 패턴).
 
-// currentCourse 는 지금 진행 중인 코스 파일("날짜/파일") — 기록 탭에서 지우지 못하게 막는 데 쓴다.
-var currentCourse atomic.Value
+// currentCourse 는 진행 탭에 걸려 있는 현재 코스 파일("날짜/파일") — 기록 탭에서 지우지 못하게 막는 데 쓴다.
+// currentState 는 그 코스의 상태: "down"(내려 둠) | "practice"(연습 중) | "open"(기록 중) — 기록 탭 표시가 진행 탭과 같게.
+var currentCourse, currentState atomic.Value
 
 func isLoopback(r *http.Request) bool {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
@@ -54,7 +55,8 @@ func handleListCourses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cur, _ := currentCourse.Load().(string)
-	writeJSON(w, http.StatusOK, map[string]any{"courses": list, "dates": listDates(), "current": cur})
+	state, _ := currentState.Load().(string)
+	writeJSON(w, http.StatusOK, map[string]any{"courses": list, "dates": listDates(), "current": cur, "currentState": state})
 }
 
 func handleGetCourse(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +72,7 @@ func handleGetCourse(w http.ResponseWriter, r *http.Request) {
 func handleDeleteCourse(w http.ResponseWriter, r *http.Request) {
 	date, file := r.PathValue("date"), r.PathValue("file")
 	if cur, _ := currentCourse.Load().(string); cur == date+"/"+file {
-		writeErr(w, http.StatusBadRequest, "지금 진행 중인 코스는 지울 수 없어요. 새 코스를 만든 뒤 지우세요.")
+		writeErr(w, http.StatusBadRequest, "진행 탭에 걸려 있는 현재 코스는 지울 수 없어요. 새 코스를 만든 뒤 지우세요.")
 		return
 	}
 	if err := deleteCourseFile(date, file); err != nil {
