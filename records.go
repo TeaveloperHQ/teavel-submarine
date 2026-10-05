@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// 코스 하나 = 파일 하나: exe 옆 results/<날짜>/<시각>-<코스id>.json
+// 코스 하나 = 파일 하나: exe 옆 teavel-submarine-results/<날짜>/<시각>-<코스id>.json
 // 코스 설정(시드 포함 — 장애물은 시드로 다시 만든다), 학생별 도전 횟수, 공식 주행 기록 전부가 들어 있다.
 // 공식 주행이 끝날 때마다 통째로 다시 쓴다(임시 파일 → 이름 바꾸기). 서버를 다시 켜면 가장 최근 코스를 이어서 한다.
 
@@ -26,7 +26,7 @@ type CourseFile struct {
 	File   string         `json:"-"`
 }
 
-func resultsDir() string { return filepath.Join(exeDir(), "results") }
+func resultsDir() string { return filepath.Join(exeDir(), "teavel-submarine-results") }
 
 func saveCourseFile(cf *CourseFile) {
 	dir := filepath.Join(resultsDir(), cf.Date)
